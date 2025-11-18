@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ABCTA, CallToAction } from "../model";
 import CallToActionComponent from "./CallToAction";
 import { createItemSmartLink, createElementSmartLink } from "../utils/smartlink";
+import { getUserPersona, ctaMatchesPersona } from "../utils/persona";
 
 type ABCTAProps = {
   abCta: ABCTA;
@@ -9,23 +10,60 @@ type ABCTAProps = {
 };
 
 const ABCTAComponent: React.FC<ABCTAProps> = ({ abCta, isPreview = false }) => {
-  const [selectedCta, setSelectedCta] = useState<"A" | "B">("A");
+  const [selectedCta, setSelectedCta] = useState<"A" | "B" | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Get the CTAs
   const ctaA = abCta.elements.cta_a.linkedItems[0] as CallToAction;
   const ctaB = abCta.elements.cta_b.linkedItems[0] as CallToAction;
 
-  // Randomly select CTA on mount (50/50 chance)
-  useEffect(() => {
-    if (!isPreview && !isInitialized) {
+  // Function to select CTA based on persona
+  const selectCTABasedOnPersona = useCallback(() => {
+    const userPersona = getUserPersona();
+    
+    if (userPersona) {
+      // Check which CTA matches the user's persona
+      const ctaAMatches = ctaMatchesPersona(ctaA?.elements.persona, userPersona);
+      const ctaBMatches = ctaMatchesPersona(ctaB?.elements.persona, userPersona);
+      
+      if (ctaAMatches && !ctaBMatches) {
+        setSelectedCta("A");
+      } else if (ctaBMatches && !ctaAMatches) {
+        setSelectedCta("B");
+      } else if (ctaAMatches && ctaBMatches) {
+        // Both match - prefer A, or could randomize
+        setSelectedCta("A");
+      } else {
+        // Neither matches - fallback to random (or could show default)
+        const randomChoice = Math.random() < 0.5 ? "A" : "B";
+        setSelectedCta(randomChoice);
+      }
+    } else {
+      // No persona selected - random selection (original behavior)
       const randomChoice = Math.random() < 0.5 ? "A" : "B";
       setSelectedCta(randomChoice);
-      setIsInitialized(true);
-    } else if (isPreview) {
+    }
+  }, [ctaA, ctaB]);
+
+  // Select CTA based on persona cookie on mount
+  useEffect(() => {
+    if (!isInitialized) {
+      selectCTABasedOnPersona();
       setIsInitialized(true);
     }
-  }, [isPreview, isInitialized]);
+  }, [isPreview, isInitialized, selectCTABasedOnPersona]);
+
+  // Listen for persona changes
+  useEffect(() => {
+    const handlePersonaChange = () => {
+      selectCTABasedOnPersona();
+    };
+
+    window.addEventListener('personaChanged', handlePersonaChange);
+    return () => {
+      window.removeEventListener('personaChanged', handlePersonaChange);
+    };
+  }, [selectCTABasedOnPersona]);
 
   if (!ctaA || !ctaB) {
     return (
@@ -35,7 +73,12 @@ const ABCTAComponent: React.FC<ABCTAProps> = ({ abCta, isPreview = false }) => {
     );
   }
 
+  if (!selectedCta || !isInitialized) {
+    return null; // Don't render until initialized
+  }
+
   const currentCta = selectedCta === "A" ? ctaA : ctaB;
+  const userPersona = getUserPersona();
 
   const renderCTA = (cta: CallToAction, variant: "A" | "B") => (
     <div key={`cta-${variant}`}>
@@ -65,11 +108,19 @@ const ABCTAComponent: React.FC<ABCTAProps> = ({ abCta, isPreview = false }) => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-blue-900">
-                🧪 A/B Test Preview
+                🧪 Persona-Based CTA Preview
               </h3>
               <p className="text-sm text-blue-700">
                 Currently showing: <strong>CTA {selectedCta}</strong>
+                {userPersona && (
+                  <span className="ml-2">(Persona: {userPersona})</span>
+                )}
               </p>
+              {userPersona && (
+                <p className="text-xs text-blue-600 mt-1">
+                  CTA {selectedCta} matches persona: {ctaMatchesPersona(currentCta.elements.persona, userPersona) ? "✓" : "✗"}
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
               <button

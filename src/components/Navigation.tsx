@@ -6,6 +6,7 @@ import { DeliveryError } from "@kontent-ai/delivery-sdk";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { useAppContext } from "../context/AppContext";
 import { createPreviewLink } from "../utils/link";
+import { DEFAULT_COLLECTION_CODENAME } from "../utils/constants";
 
 const Navigation: FC = () => {
   const { environmentId, apiKey, collection } = useAppContext();
@@ -14,7 +15,7 @@ const Navigation: FC = () => {
 
   const lang = searchParams.get("lang");
   const collectionParam = searchParams.get("collection")
-  const collectionFilter = collectionParam ?? collection ?? "patient_resources";
+  const collectionFilter = collectionParam ?? collection ?? DEFAULT_COLLECTION_CODENAME;
 
   const [navigation] = useSuspenseQueries({
     queries: [
@@ -28,13 +29,19 @@ const Navigation: FC = () => {
             .languageParameter((lang ?? "default") as LanguageCodenames)
             .collections([collectionFilter as CollectionCodenames])
             .toPromise()
-            .then(res => res.data.items[0]?.elements.subpages.linkedItems.map(subpage => ({
-              name: subpage.elements.headline.value,
-              link: subpage.elements.url.value,
-            })))
+            .then(res => {
+              const landingPage = res.data.items[0];
+              if (!landingPage || !landingPage.elements.subpages?.linkedItems) {
+                return [];
+              }
+              return landingPage.elements.subpages.linkedItems.map(subpage => ({
+                name: subpage.elements.headline?.value || "",
+                link: subpage.elements.url?.value || "",
+              }));
+            })
             .catch((err) => {
               if (err instanceof DeliveryError) {
-                return null;
+                return [];
               }
               throw err;
             }),
@@ -48,12 +55,12 @@ const Navigation: FC = () => {
     </li>
   );
 
+  const navigationItems = navigation.data || [];
+
   return (
     <nav>
       <menu className="flex flex-col lg:flex-row gap-5 lg:gap-[60px] items-center list-none text-white">
-        {
-          navigation.data?.map(({ name, link }) => createMenuLink(name, link))
-        }
+        {navigationItems.map(({ name, link }) => createMenuLink(name, link))}
       </menu>
     </nav>
   );

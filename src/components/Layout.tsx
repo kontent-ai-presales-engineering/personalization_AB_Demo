@@ -5,6 +5,7 @@ import { Outlet, ScrollRestoration } from "react-router-dom";
 import { SmartLinkContextComponent } from "../context/SmartLinkContext";
 import { AppContextComponent } from "../context/AppContext";
 import PersonalizationDebug from "./PersonalizationDebug";
+import PersonaSelector from "./PersonaSelector";
 
 const Layout: FC<PropsWithChildren> = () => (
   <AppContextComponent>
@@ -15,6 +16,7 @@ const Layout: FC<PropsWithChildren> = () => (
         <Outlet />
         <Footer />
         <PersonalizationDebug />
+        <PersonaSelector />
       </div>
     </SmartLinkContextComponent>
   </AppContextComponent>

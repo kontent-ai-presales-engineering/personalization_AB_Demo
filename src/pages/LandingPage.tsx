@@ -14,6 +14,7 @@ import { useSearchParams } from "react-router-dom";
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
 import { useSuspenseQueries } from "@tanstack/react-query";
+import { DEFAULT_COLLECTION_CODENAME } from "../utils/constants";
 
 const useLandingPage = (isPreview: boolean, lang: string | null) => {
   const { environmentId, apiKey, collection } = useAppContext();
@@ -44,7 +45,7 @@ const useLandingPage = (isPreview: boolean, lang: string | null) => {
       .type("landing_page")
       .limitParameter(1)
       .depthParameter(3)
-      .equalsFilter("system.collection", collection ?? "patient_resources")
+      .equalsFilter("system.collection", collection ?? DEFAULT_COLLECTION_CODENAME)
       .languageParameter((lang ?? "default") as LanguageCodenames)
       .toPromise()
       .then(res => {
@@ -62,7 +63,7 @@ const useLandingPage = (isPreview: boolean, lang: string | null) => {
           throw err;
         }
       });
-  }, [environmentId, apiKey, isPreview, lang]);
+  }, [environmentId, apiKey, isPreview, lang, collection]);
 
   useLivePreview(handleLiveUpdate);
 
@@ -87,7 +88,7 @@ const LandingPage: FC = () => {
             .type("landing_page")
             .limitParameter(1)
             .depthParameter(3)
-            .equalsFilter("system.collection", collection ?? "patient_resources")
+            .equalsFilter("system.collection", collection ?? DEFAULT_COLLECTION_CODENAME)
             .toPromise()
             .then(res =>
               res.data.items[0] as Replace<LandingPage, { elements: Partial<LandingPage["elements"]> }> ?? null
@@ -116,7 +117,20 @@ const LandingPage: FC = () => {
   useCustomRefresh(onRefresh);
 
   if (!landingPage || !Object.entries(landingPage.elements).length) {
-    return <div className="flex-grow" />;
+    console.warn("Landing page not found or empty. Collection:", collection ?? DEFAULT_COLLECTION_CODENAME, "Environment:", environmentId);
+    return (
+      <div className="flex-grow flex items-center justify-center p-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Landing Page Not Found</h2>
+          <p className="text-gray-600 mb-2">
+            No landing page found in collection: <strong>{collection ?? DEFAULT_COLLECTION_CODENAME}</strong>
+          </p>
+          <p className="text-sm text-gray-500">
+            Check your Kontent.ai project for a landing page in the "{collection ?? DEFAULT_COLLECTION_CODENAME}" collection.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
