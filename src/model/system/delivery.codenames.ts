@@ -6,9 +6,9 @@
 *  
 * -------------------------------------------------------------------------------
 * 
-* Project: 🧔🏻 Personalization Example
+* Project: 🏕️KoA Personalization
 * Environment: Production
-* Id: c4aa2909-21c3-026b-85f1-89cb4ae991ca
+* Id: f189fcee-05bc-0069-1f34-a1d35d692446
 * 
 * -------------------------------------------------------------------------------
 **/
@@ -43,7 +43,11 @@ export type ContentTypeCodenames =
  */
 export type CollectionCodenames =
   | "academic_content"
+  | "alpine"
+  | "austin_east"
+  | "campground_template"
   | "default"
+  | "lake_conroe"
   | "operations"
   | "patient_resources"
   | "shop_resources";
@@ -59,6 +63,8 @@ export type WorkflowCodenames = "academic_resources" | "biographies" | "default"
 export type TaxonomyCodenames =
   | "article_type"
   | "australian_museum_topics"
+  | "camper_types"
+  | "camping_topics"
   | "channel"
   | "event_topic"
   | "event_type"
@@ -100,6 +106,7 @@ export type ElementCodenames =
   | "button_label"
   | "button_link"
   | "bynder_asset"
+  | "camper_types"
   | "caption"
   | "channel"
   | "cloudinary_integration"
@@ -130,6 +137,7 @@ export type ElementCodenames =
   | "metadata"
   | "music_topics"
   | "name"
+  | "persona"
   | "personas"
   | "phone"
   | "pim_integration_e_g__shopify"

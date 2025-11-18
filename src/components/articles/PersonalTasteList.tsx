@@ -11,7 +11,7 @@ interface PersonalTasteListProps {
   articles: Article[];
 }
 
-// Get article topics from the actual CMS taxonomy field (music_topics)
+// Get article topics from the actual CMS taxonomy field (music_topics - field codename, but uses CampingTopics taxonomy)
 const getArticleTopics = (article: Article): string[] => {
   return article.elements.music_topics?.value?.map(topic => topic.codename) || [];
 };
@@ -49,7 +49,7 @@ const PersonalTasteList: FC<PersonalTasteListProps> = ({
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex flex-col">
               <h3 className="text-2xl font-semibold text-black uppercase font-lexend">
-                🎵 Your Personal Taste
+                🏕️ Your Personal Taste
               </h3>
               <p className="text-base text-black mt-1">
                 Based on your interests: {userProfile.topInterests.slice(0, 3).map(t => t.topicName).join(', ')}
@@ -151,10 +151,10 @@ const PersonalTasteList: FC<PersonalTasteListProps> = ({
       {!userProfile.hasInterests && (
         <div className="bg-gray-50 rounded-lg p-6 text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            🎵 Discover Your Personal Taste
+            🏕️ Discover Your Personal Taste
           </h3>
           <p className="text-sm text-gray-600">
-            Start reading articles to help us understand your music interests and provide personalized recommendations.
+            Start reading articles to help us understand your camping interests and provide personalized recommendations.
           </p>
         </div>
       )}

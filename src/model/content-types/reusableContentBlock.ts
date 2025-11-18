@@ -6,15 +6,15 @@
 *  
 * -------------------------------------------------------------------------------
 * 
-* Project: 🧔🏻 Personalization Example
+* Project: 🏕️KoA Personalization
 * Environment: Production
-* Id: c4aa2909-21c3-026b-85f1-89cb4ae991ca
+* Id: f189fcee-05bc-0069-1f34-a1d35d692446
 * 
 * -------------------------------------------------------------------------------
 **/
 
 import type { Elements } from "@kontent-ai/delivery-sdk";
-import type { AustralianMuseumTopics, Personas } from "../taxonomies/index.ts";
+import type { AustralianMuseumTopics, Personas, CamperTypes } from "../taxonomies/index.ts";
 import type { CoreContentType } from "../system/index.ts";
 
 /**
@@ -53,6 +53,16 @@ export type ReusableContentBlock = CoreContentType<
      * Id: b268772f-7263-4ba5-934e-00703fa8fb4a
      */
     readonly personas: Elements.TaxonomyElement<Personas, "personas">;
+    /**
+     * Camper Types
+     *
+     * Type: taxonomy
+     * Required: false
+     * Codename: camper_types
+     * Id: 527684ed-290d-4b2b-ad3e-c647c06e2f31
+     * Guidelines: Target specific camper personas with personalized content
+     */
+    readonly camper_types: Elements.TaxonomyElement<CamperTypes, "camper_types">;
   },
   "reusable_content_block"
 >;
@@ -60,7 +70,7 @@ export type ReusableContentBlock = CoreContentType<
 /**
  * Type representing all available element codenames for Reusable Content Block
  */
-export type ReusableContentBlockElementCodenames = "content" | "australian_museum_topics" | "personas";
+export type ReusableContentBlockElementCodenames = "content" | "australian_museum_topics" | "personas" | "camper_types";
 
 /**
  * Type guard for Reusable Content Block

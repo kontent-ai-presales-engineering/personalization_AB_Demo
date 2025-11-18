@@ -144,7 +144,7 @@ const ArticleDetailPage: React.FC = () => {
         
         trackArticleTopics(topics);
         
-        console.log(`📊 Tracked interest in topics${isPreview ? ' (preview mode)' : ''}:`, topics.map(t => t.name).join(', '));
+        console.log(`📊 Tracked interest in camping topics${isPreview ? ' (preview mode)' : ''}:`, topics.map(t => t.name).join(', '));
       }
   }, [article, isPreview]);
 

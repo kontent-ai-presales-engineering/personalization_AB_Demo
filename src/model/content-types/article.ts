@@ -6,15 +6,15 @@
 *  
 * -------------------------------------------------------------------------------
 * 
-* Project: 🧔🏻 Personalization Example
+* Project: 🏕️KoA Personalization
 * Environment: Production
-* Id: c4aa2909-21c3-026b-85f1-89cb4ae991ca
+* Id: f189fcee-05bc-0069-1f34-a1d35d692446
 * 
 * -------------------------------------------------------------------------------
 **/
 
 import type { Elements } from "@kontent-ai/delivery-sdk";
-import type { Channel, MusicArticles } from "../taxonomies/index.ts";
+import type { Channel, CampingTopics } from "../taxonomies/index.ts";
 import type { CoreContentType } from "../system/index.ts";
 import type { Metadata } from "../content-type-snippets/index.ts";
 import type { Person } from "./index.ts";
@@ -128,15 +128,15 @@ export type Article = CoreContentType<
      */
     readonly linkedin: Elements.TextElement;
     /**
-     * Music Articles
+     * Camping Topics
      *
      * Type: taxonomy
      * Required: false
      * Codename: music_topics
      * Id: f939d795-a222-4c6f-9e46-98d45cd96563
-     * Guidelines: Select relevant music genres and eras for this article
+     * Guidelines: Select relevant camping topics, activities, and site types for this article
      */
-    readonly music_topics: Elements.TaxonomyElement<MusicArticles, "music_topics">;
+    readonly music_topics: Elements.TaxonomyElement<CampingTopics, "music_topics">;
   } & Metadata,
   "article"
 >;

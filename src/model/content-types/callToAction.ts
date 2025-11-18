@@ -6,14 +6,15 @@
 *  
 * -------------------------------------------------------------------------------
 * 
-* Project: 🧔🏻 Personalization Example
+* Project: 🏕️KoA Personalization
 * Environment: Production
-* Id: c4aa2909-21c3-026b-85f1-89cb4ae991ca
+* Id: f189fcee-05bc-0069-1f34-a1d35d692446
 * 
 * -------------------------------------------------------------------------------
 **/
 
 import type { Elements } from "@kontent-ai/delivery-sdk";
+import type { CamperTypes } from "../taxonomies/index.ts";
 import type { CoreContentType } from "../system/index.ts";
 import type { Page } from "./index.ts";
 
@@ -89,6 +90,15 @@ export type CallToAction = CoreContentType<
      * Id: 6b1987fe-3471-4e69-9bb3-f32bdfbd18c5
      */
     readonly style: Elements.MultipleChoiceElement<"white" | "mint_green">;
+    /**
+     * Camper Types
+     *
+     * Type: taxonomy
+     * Required: false
+     * Codename: persona
+     * Id: a81f3ebc-1992-4028-9985-c35dbbb3f043
+     */
+    readonly persona: Elements.TaxonomyElement<CamperTypes, "persona">;
   },
   "call_to_action"
 >;
@@ -103,7 +113,8 @@ export type CallToActionElementCodenames =
   | "image_position"
   | "button_label"
   | "button_link"
-  | "style";
+  | "style"
+  | "persona";
 
 /**
  * Type guard for Call to action

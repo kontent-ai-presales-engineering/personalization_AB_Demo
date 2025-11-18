@@ -6,16 +6,16 @@
 *  
 * -------------------------------------------------------------------------------
 * 
-* Project: 🧔🏻 Personalization Example
+* Project: 🏕️KoA Personalization
 * Environment: Production
-* Id: c4aa2909-21c3-026b-85f1-89cb4ae991ca
+* Id: f189fcee-05bc-0069-1f34-a1d35d692446
 * 
 * -------------------------------------------------------------------------------
 **/
 
 import type { Elements } from "@kontent-ai/delivery-sdk";
 import type { CoreContentType } from "../system/index.ts";
-import type { Video, Disclaimer, CallToAction, Event, Article, Page } from "./index.ts";
+import type { Video, Disclaimer, CallToAction, ABCTA, Event, Article, Page } from "./index.ts";
 
 /**
  * Landing Page
@@ -61,7 +61,7 @@ export type LandingPage = CoreContentType<
      * Codename: body_copy
      * Id: 7b9826ff-5cb0-450f-b16a-bd176aed04cf
      */
-    readonly body_copy: Elements.RichTextElement<Video | Disclaimer | CallToAction>;
+    readonly body_copy: Elements.RichTextElement<Video | Disclaimer | CallToAction | ABCTA>;
     /**
      * Featured Content
      *

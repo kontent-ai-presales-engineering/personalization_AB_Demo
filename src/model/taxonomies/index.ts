@@ -6,15 +6,17 @@
 *  
 * -------------------------------------------------------------------------------
 * 
-* Project: 🧔🏻 Personalization Example
+* Project: 🏕️KoA Personalization
 * Environment: Production
-* Id: c4aa2909-21c3-026b-85f1-89cb4ae991ca
+* Id: f189fcee-05bc-0069-1f34-a1d35d692446
 * 
 * -------------------------------------------------------------------------------
 **/
 
 export * from "./articleType.ts";
 export * from "./australianMuseumTopics.ts";
+export * from "./camperTypes.ts";
+export * from "./campingTopics.ts";
 export * from "./channel.ts";
 export * from "./eventTopic.ts";
 export * from "./eventType.ts";
