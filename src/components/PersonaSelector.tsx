@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { getUserPersona, saveUserPersona, clearUserPersona } from "../utils/persona";
-import { CamperTypes, camperTypesValues } from "../model/taxonomies/camperTypes";
+import { CamperTypes } from "../model/taxonomies/camperTypes";
 
 // Map camper type codenames to display names
 const PERSONA_DISPLAY_NAMES: Record<string, string> = {
