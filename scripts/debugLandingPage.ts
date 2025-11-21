@@ -3,7 +3,7 @@ import { createDeliveryClient } from "@kontent-ai/delivery-sdk";
 
 dotenv.config();
 
-const ENVIRONMENT_ID = process.env.VITE_ENVIRONMENT_ID || "8381787f-717e-007f-809d-a80af690508b";
+const ENVIRONMENT_ID = process.env.VITE_ENVIRONMENT_ID || "f189fcee-05bc-0069-1f34-a1d35d692446";
 const API_KEY = process.env.VITE_DELIVERY_API_KEY || "";
 
 async function debugLandingPage() {

@@ -76,29 +76,57 @@ const LandingPage: FC = () => {
   const isPreview = searchParams.get("preview") === "true";
   const lang = searchParams.get("lang");
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 LandingPage Context:', {
+      environmentId,
+      collection,
+      hasApiKey: !!apiKey,
+      isPreview,
+      lang,
+    });
+  }, [environmentId, collection, apiKey, isPreview, lang]);
+
   const landingPage = useLandingPage(isPreview, lang);
 
   const [landingPageData] = useSuspenseQueries({
     queries: [
       {
-        queryKey: ["landing_page"],
-        queryFn: () =>
-          createClient(environmentId, apiKey, isPreview)
+        queryKey: ["landing_page", environmentId, collection, lang, isPreview],
+        queryFn: () => {
+          console.log('🔍 Fetching landing page with:', {
+            environmentId,
+            collection: collection ?? DEFAULT_COLLECTION_CODENAME,
+            lang: lang ?? 'default',
+            isPreview,
+          });
+          
+          return createClient(environmentId, apiKey, isPreview)
             .items()
             .type("landing_page")
             .limitParameter(1)
             .depthParameter(3)
             .equalsFilter("system.collection", collection ?? DEFAULT_COLLECTION_CODENAME)
+            .languageParameter((lang ?? "default") as LanguageCodenames)
             .toPromise()
-            .then(res =>
-              res.data.items[0] as Replace<LandingPage, { elements: Partial<LandingPage["elements"]> }> ?? null
-            )
+            .then(res => {
+              const item = res.data.items[0] as Replace<LandingPage, { elements: Partial<LandingPage["elements"]> }> | undefined;
+              console.log('🔍 Landing page fetch result:', {
+                found: !!item,
+                codename: item?.system.codename,
+                collection: item?.system.collection,
+                title: item?.elements.headline?.value,
+              });
+              return item ?? null;
+            })
             .catch((err) => {
+              console.error('❌ Landing page fetch error:', err);
               if (err instanceof DeliveryError) {
                 return null;
               }
               throw err;
-            }),
+            });
+        },
       },
     ],
   });

@@ -21,7 +21,17 @@ import OurShopPage from "./pages/ShopPage.tsx";
 import ProductDetailPage from "./pages/ProductDetailPage.tsx";
 import PersonalTastePage from "./pages/PersonalTastePage.tsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
+      gcTime: 1000 * 60 * 10, // Keep unused data in cache for 10 minutes
+      refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
+      refetchOnWindowFocus: false, // Don't refetch on window focus
+      refetchOnReconnect: true, // Refetch when reconnecting
+    },
+  },
+});
 
 const BaseRouting: RouteObject[] = [
   {

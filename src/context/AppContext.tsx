@@ -14,6 +14,17 @@ const defaultAppContext: AppContext = {
   collection: import.meta.env.VITE_COLLECTION!,
 };
 
+// Debug logging to verify environment variables are loaded correctly
+if (typeof window !== 'undefined') {
+  console.log('🔍 AppContext Environment Variables:', {
+    environmentId: import.meta.env.VITE_ENVIRONMENT_ID,
+    hasApiKey: !!import.meta.env.VITE_DELIVERY_API_KEY,
+    collection: import.meta.env.VITE_COLLECTION,
+    mode: import.meta.env.MODE,
+    allEnvVars: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
+  });
+}
+
 const AppContext = createContext<AppContext>(defaultAppContext);
 
 export const useAppContext = () => useContext(AppContext);
@@ -24,14 +35,23 @@ export const AppContextComponent: FC<PropsWithChildren> = ({ children }) => {
   const contextData = useSuspenseQuery({
     queryKey: [`env-data${envId ? `-${envId}` : ""}`],
     queryFn: () => {
-      if (!envId) {
-        return defaultAppContext;
-      }
-      return {
+      const context = !envId ? defaultAppContext : {
         environmentId: envId,
         apiKey: import.meta.env.VITE_DELIVERY_API_KEY!,
         collection: import.meta.env.VITE_COLLECTION!,
       };
+      
+      // Debug logging
+      if (typeof window !== 'undefined') {
+        console.log('🔍 AppContext Data:', {
+          environmentId: context.environmentId,
+          collection: context.collection,
+          hasApiKey: !!context.apiKey,
+          source: envId ? 'URL param' : 'default',
+        });
+      }
+      
+      return context;
     },
   });
 

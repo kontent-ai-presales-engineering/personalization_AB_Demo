@@ -20,7 +20,7 @@ const Navigation: FC = () => {
   const [navigation] = useSuspenseQueries({
     queries: [
       {
-        queryKey: ["navigation"],
+        queryKey: ["navigation", environmentId, collectionFilter, lang, isPreview],
         queryFn: () =>
           createClient(environmentId, apiKey, isPreview)
             .items<LandingPage>()
