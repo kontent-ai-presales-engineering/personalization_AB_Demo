@@ -13,7 +13,7 @@ import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import KOAHero from "../components/landingPage/KOAHero";
-import KOACampgroundTypes from "../components/landingPage/KOACampgroundTypes";
+// import KOACampgroundTypes from "../components/landingPage/KOACampgroundTypes";
 
 const useLandingPage = (isPreview: boolean, lang: string | null) => {
   const { environmentId, apiKey, collection } = useAppContext();
