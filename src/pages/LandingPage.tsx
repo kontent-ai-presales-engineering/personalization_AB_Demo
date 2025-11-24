@@ -173,7 +173,7 @@ const LandingPage: FC = () => {
       />
 
       {/* KOA Campground Types Section */}
-      <KOACampgroundTypes />
+      {/* <KOACampgroundTypes /> */}
 
       {/* Body Copy from CMS */}
       {landingPage.elements.body_copy?.value && (
