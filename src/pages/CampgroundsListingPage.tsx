@@ -16,7 +16,7 @@ import { Replace } from "../utils/types";
 import CampgroundList from "../components/campgrounds/CampgroundList";
 
 const useCampgroundsListingPage = (isPreview: boolean, lang: string | null) => {
-  const { environmentId, apiKey, collection } = useAppContext();
+  const { environmentId, apiKey } = useAppContext();
   const [page, setPage] = useState<Page | null>(null);
 
   const handleLiveUpdate = useCallback((data: IUpdateMessageData) => {
