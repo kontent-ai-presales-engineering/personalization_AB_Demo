@@ -88,7 +88,7 @@ const CampgroundsListingPage: React.FC = () => {
             }),
       },
       {
-        queryKey: ["campgrounds", environmentId, collection, lang, isPreview],
+        queryKey: ["campgrounds", environmentId, lang, isPreview],
         queryFn: () =>
           createClient(environmentId, apiKey, isPreview)
             .items<Campground>()
