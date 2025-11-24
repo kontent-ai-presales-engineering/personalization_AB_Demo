@@ -41,32 +41,10 @@ export default async function handler(
       });
     }
 
-    // Extract webhook data
+    // Extract webhook data for logging
     const webhookData = request.body;
-    const operation = webhookData?.operation || webhookData?.message?.type || 'unknown';
-    const itemType = webhookData?.data?.type || webhookData?.data?.codename || 'unknown';
-    
-    console.log(`📥 Webhook received: ${operation} on ${itemType}`);
+    console.log('📥 Webhook received from Kontent.ai');
     console.log('📋 Full webhook payload:', JSON.stringify(webhookData, null, 2));
-
-    // Only trigger on content type changes (when models need regeneration)
-    const shouldTrigger = 
-      operation === 'content_type_variant' || 
-      operation === 'content_type' ||
-      webhookData?.message?.type === 'content_type_variant' ||
-      webhookData?.message?.type === 'content_type';
-
-    if (!shouldTrigger) {
-      console.log(`⏭️ Skipping model regeneration for operation: ${operation}`);
-      console.log('ℹ️ This webhook is for a non-content-type change. Models only regenerate on content type changes.');
-      return response.status(200).json({ 
-        message: 'Webhook received but model regeneration not needed',
-        operation,
-        itemType,
-        webhookReceived: true,
-        note: 'Models only regenerate on content_type or content_type_variant operations'
-      });
-    }
 
     // Generate models
     console.log('🚀 Starting model generation...');
@@ -121,8 +99,6 @@ export default async function handler(
     return response.status(200).json({ 
       success: true,
       message: 'Models generated successfully',
-      operation,
-      itemType,
       outputDir: outputDir,
       timestamp: new Date().toISOString(),
       webhookReceived: true
