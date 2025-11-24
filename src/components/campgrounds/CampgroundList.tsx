@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { createElementSmartLink, createItemSmartLink } from "../../utils/smartlink";
+import { createItemSmartLink } from "../../utils/smartlink";
 import { Campground } from "../../model";
 import { transformToPortableText } from "@kontent-ai/rich-text-resolver";
 
@@ -145,13 +145,9 @@ const CampgroundList: React.FC<CampgroundListProps> = ({ campgrounds }) => {
         <p className="text-center text-koaGray text-lg font-sans" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>No campgrounds available</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {campgrounds.map((campground) => {
-            const urlSlug = campground.elements.url?.value || campground.system.codename;
-            const normalizedUrl = urlSlug.startsWith('/') ? urlSlug.slice(1) : urlSlug.replace(/^campgrounds\//, '');
-            return (
-              <CampgroundCard key={campground.system.id} campground={campground} />
-            );
-          })}
+          {campgrounds.map((campground) => (
+            <CampgroundCard key={campground.system.id} campground={campground} />
+          ))}
         </div>
       )}
     </div>

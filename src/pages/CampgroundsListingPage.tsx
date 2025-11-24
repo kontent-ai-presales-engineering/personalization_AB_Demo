@@ -13,8 +13,6 @@ import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import { createElementSmartLink, createItemSmartLink } from "../utils/smartlink";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { Replace } from "../utils/types";
-import { DEFAULT_COLLECTION_CODENAME } from "../utils/constants";
-import { CollectionCodenames } from "../model";
 import CampgroundList from "../components/campgrounds/CampgroundList";
 
 const useCampgroundsListingPage = (isPreview: boolean, lang: string | null) => {
@@ -63,7 +61,7 @@ const useCampgroundsListingPage = (isPreview: boolean, lang: string | null) => {
 
 
 const CampgroundsListingPage: React.FC = () => {
-  const { environmentId, apiKey, collection } = useAppContext();
+  const { environmentId, apiKey } = useAppContext();
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
   const lang = searchParams.get("lang");

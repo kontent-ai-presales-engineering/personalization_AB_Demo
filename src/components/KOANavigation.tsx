@@ -2,19 +2,6 @@ import { FC, useState } from "react";
 import { NavLink, useSearchParams } from "react-router-dom";
 import { createPreviewLink } from "../utils/link";
 
-type DropdownItem = {
-  label: string;
-  href: string;
-  children?: DropdownItem[];
-};
-
-type NavItem = {
-  label: string;
-  href: string;
-  hasDropdown?: boolean;
-  dropdownContent?: React.ReactNode;
-};
-
 const KOANavigation: FC = () => {
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";

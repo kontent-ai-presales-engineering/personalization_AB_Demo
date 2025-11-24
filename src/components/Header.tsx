@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
 
 const Header: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const isPreview = searchParams.get("preview") === "true";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (

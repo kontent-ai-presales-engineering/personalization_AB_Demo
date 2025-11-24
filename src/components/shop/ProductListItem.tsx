@@ -132,7 +132,7 @@ export const ProductListItem: FC<ProductListItemProps> = ({
         {/* Action Button */}
         <ButtonLink
           href={productUrl}
-          style="mintGreen"
+          style="blue"
           className="w-full justify-center"
         >
           View Details
