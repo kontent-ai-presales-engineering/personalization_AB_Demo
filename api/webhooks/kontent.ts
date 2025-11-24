@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { generateDeliveryModelsAsync } from '@kontent-ai/model-generator';
+import type { generateDeliveryModelsAsync } from '@kontent-ai/model-generator';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -87,6 +87,11 @@ export default async function handler(
       console.log(`📁 Creating output directory: ${outputDir}`);
       mkdirSync(outputDir, { recursive: true });
     }
+
+    // Dynamic import for ESM module (required for Vercel serverless functions)
+    console.log('📦 Loading model generator module...');
+    const { generateDeliveryModelsAsync } = await import('@kontent-ai/model-generator');
+    console.log('✅ Model generator module loaded');
 
     // Generate models
     await generateDeliveryModelsAsync({
