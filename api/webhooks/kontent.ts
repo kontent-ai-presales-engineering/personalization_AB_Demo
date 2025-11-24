@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import type { generateDeliveryModelsAsync } from '@kontent-ai/model-generator';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
