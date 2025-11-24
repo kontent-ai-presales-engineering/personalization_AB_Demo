@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@kontent-ai/delivery-sdk": "^16.0.0",
+    "@kontent-ai/model-generator": "^8.0.0",
     "@kontent-ai/rich-text-resolver": "^2.0.1",
     "@kontent-ai/smart-link": "^4.0.1",
     "@portabletext/react": "^3.2.0",
@@ -31,7 +32,6 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@kontent-ai/data-ops": "^2.3.8",
-    "@kontent-ai/model-generator": "^8.0.0",
     "@react-router/dev": "^7.5.0",
     "@types/node": "^22.14.0",
     "@types/react": "^18.3.20",
