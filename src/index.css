@@ -2,8 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-h1, h2, h3 {
-  @apply font-libre;
+/* KOA Font Faces - Using system fonts as fallback since we don't have the actual font files */
+@font-face {
+  font-family: "Gibson Regular";
+  src: local("Arial"), local("Helvetica"), sans-serif;
+}
+
+@font-face {
+  font-family: "Gibson SemiBold";
+  src: local("Arial"), local("Helvetica"), sans-serif;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Gibson Bold";
+  src: local("Arial"), local("Helvetica"), sans-serif;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "Fjalla one";
+  src: local("Arial"), local("Helvetica"), sans-serif;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Voltage Bold";
+  src: local("Arial"), local("Helvetica"), sans-serif;
+  font-weight: 700;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-sans-semibold;
+}
+
+body {
+  font-family: "Gibson Regular", Arial, sans-serif;
+  color: #000;
 }
 
 :root {
@@ -18,6 +53,16 @@ h1, h2, h3 {
   --color-darkGreen: #0D3311;
   --color-gold: #FFCC00;
   --color-black: #000000;
+  
+  /* KOA Brand Colors */
+  --color-koa-yellow: #ffd100;
+  --color-koa-red: #e4002b;
+  --color-koa-blue: #0072ce;
+  --color-koa-green: #006B3C;
+  --color-koa-black: #000000;
+  --color-koa-gray-light: #bbbcbc;
+  --color-koa-gray: #767676;
+  --color-koa-gray-dark: #2e2e2e;
 
   --color-primary: var(--color-darkGreen); 
   --color-secondary: var(--color-white);
@@ -135,4 +180,85 @@ h1, h2, h3 {
   --font-weight-heading-2: 800;
   --font-weight-heading-3: 800;
   --font-weight-heading-4: 700;
+}
+
+/* KOA Button Styles */
+.btn-yellow {
+  background-color: #ffd100;
+  color: #000;
+  border: 0;
+  padding: 0.8em 1.4em;
+  font-family: "Gibson SemiBold", Arial, sans-serif;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  border-radius: 0;
+}
+
+.btn-yellow:hover {
+  background-color: #cca700;
+  color: #000;
+}
+
+.btn-red {
+  background-color: #e4002b;
+  color: #fff;
+  border: 0;
+  padding: 0.8em 1.4em;
+  font-family: "Gibson SemiBold", Arial, sans-serif;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  border-radius: 0;
+}
+
+.btn-red:hover {
+  background-color: #b10021;
+  color: #fff;
+}
+
+.btn-blue {
+  background-color: #0072ce;
+  color: #fff;
+  border: 0;
+  padding: 0.8em 1.4em;
+  font-family: "Gibson SemiBold", Arial, sans-serif;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  border-radius: 0;
+}
+
+.btn-blue:hover {
+  background-color: #00569b;
+  color: #fff;
+}
+
+/* KOA Link Styles */
+a {
+  color: #0059bb;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0059bb;
+  text-decoration: underline;
+}
+
+/* KOA Card Styles */
+.koa-card {
+  background-color: #fff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.koa-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* KOA Style: No border radius on buttons and cards */
+.btn-yellow,
+.btn-red,
+.btn-blue,
+.koa-card {
+  border-radius: 0 !important;
 }

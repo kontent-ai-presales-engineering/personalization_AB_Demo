@@ -1,5 +1,11 @@
 import { FC } from "react";
 
-const Divider: FC = () => <hr className="w-full border-t border-[#D1D1D1]" />;
+type DividerProps = {
+  variant?: "light" | "dark";
+};
+
+const Divider: FC<DividerProps> = ({ variant = "light" }) => (
+  <hr className={`w-full border-t ${variant === "dark" ? "border-gray-700" : "border-gray-200"}`} />
+);
 
 export default Divider;

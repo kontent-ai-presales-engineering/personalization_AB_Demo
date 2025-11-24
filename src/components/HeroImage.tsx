@@ -15,51 +15,69 @@ type HeroImageProps = Readonly<{
 }>;
 
 const HeroImage: FC<HeroImageProps> = ({ data, buttonLink }) => {
+  const heroImageUrl = data.heroImage?.value[0]?.url;
+  const isVideo = data.heroImage?.value[0]?.type?.startsWith('video');
+
   return (
-    <div className="mintGreen-theme flex flex-col py-10 lg:py-0 lg:flex-row lg:gap-32">
-      <div className="lg:basis-1/2 pt-10 lg:pt-[104px] pb-10 lg:pb-[160px] flex flex-col items-center lg:items-start gap-10">
-        <h1 className="text-center lg:text-left font-libre text-[64px] md:text-[94px] text-heading-1-color font-bold leading-[64px] md:leading-[78px]"
+    <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center overflow-hidden">
+      {/* Background Image/Video - Full Width */}
+      {heroImageUrl && (
+        <div className="absolute inset-0 z-0 w-full h-full">
+          {isVideo ? (
+            <video
+              src={heroImageUrl}
+              autoPlay={true}
+              loop={true}
+              muted={true}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              className="w-full h-full object-cover"
+              src={`${heroImageUrl}?auto=format&w=1920`}
+              alt={data.heroImage?.value[0]?.description ?? "hero image"}
+              {...createItemSmartLink(data.itemId)}
+              {...createElementSmartLink("hero_image")}
+            />
+          )}
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+      )}
+
+      {/* Headline and Content - Suspended Over Hero */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 lg:px-8 text-center">
+        <h1 
+          className="text-white text-4xl md:text-5xl lg:text-6xl font-sans-semibold mb-4 leading-tight"
+          style={{ 
+            fontFamily: '"Gibson SemiBold", Arial, sans-serif',
+            textShadow: '0 0 14px #000'
+          }}
           {...createItemSmartLink(data.itemId)}
           {...createElementSmartLink("headline")}
         >
           {data.headline?.value}
         </h1>
-        <p className="text-center lg:text-left font-sans text-xl text-body-color"
-          {...createItemSmartLink(data.itemId)}
-          {...createElementSmartLink("subheadline")}
-        >{data.subheadline?.value}</p>
-        {buttonLink != "nolink" && (
-          <ButtonLink href={buttonLink ?? "personal-taste"}>
-            <p>Find your taste</p>
-          </ButtonLink>
+        {data.subheadline?.value && (
+          <p 
+            className="text-white text-lg md:text-xl lg:text-2xl mb-6 max-w-3xl mx-auto font-sans"
+            style={{ 
+              fontFamily: '"Gibson Regular", Arial, sans-serif',
+              textShadow: '0 0 14px #000'
+            }}
+            {...createItemSmartLink(data.itemId)}
+            {...createElementSmartLink("subheadline")}
+          >
+            {data.subheadline.value}
+          </p>
         )}
-      </div>
-      <div className="lg:basis-1/2"
-        {...createItemSmartLink(data.itemId)}
-        {...createElementSmartLink("hero_image")}
-      >
-        {data.heroImage?.value[0]
-          ? (
-            data.heroImage.value[0].type?.startsWith('image') ? (
-              <img
-                className="object-cover h-full mx-auto"
-                width={660}
-                height={770}
-                src={`${data.heroImage.value[0].url}?auto=format&w=800`}
-                alt={data.heroImage.value[0].description ?? "image-alt"}
-              />
-            ) : (
-              <video
-                src={data.heroImage.value[0].url}
-                autoPlay={true}
-                loop={true}
-                muted={true}
-                width={660}
-                height={770}    
-                className="object-cover h-full mx-auto"
-              />
-            )
-          ) : <></>}
+        {buttonLink != "nolink" && (
+          <div className="mt-6">
+            <ButtonLink href={buttonLink ?? "personal-taste"} style="yellow">
+              <p>Find your taste</p>
+            </ButtonLink>
+          </div>
+        )}
       </div>
     </div>
   );

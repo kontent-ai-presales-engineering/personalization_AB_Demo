@@ -13,6 +13,7 @@
 * -------------------------------------------------------------------------------
 **/
 
+export * from "./amenities.ts";
 export * from "./articleType.ts";
 export * from "./australianMuseumTopics.ts";
 export * from "./camperTypes.ts";
@@ -24,3 +25,4 @@ export * from "./generalHealthcareTopics.ts";
 export * from "./medicalSpecialties.ts";
 export * from "./musicArticles.ts";
 export * from "./personas.ts";
+export * from "./waysToStay.ts";

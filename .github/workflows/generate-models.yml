@@ -1,0 +1,76 @@
+name: Generate Delivery Models
+
+on:
+  workflow_dispatch:
+    inputs:
+      triggered_by:
+        description: 'What triggered this workflow'
+        required: false
+        default: 'manual'
+      operation:
+        description: 'Kontent.ai operation type'
+        required: false
+        default: 'unknown'
+      item_type:
+        description: 'Item type that changed'
+        required: false
+        default: 'unknown'
+      timestamp:
+        description: 'When the webhook was received'
+        required: false
+        default: ''
+
+jobs:
+  generate-models:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate models
+        env:
+          VITE_ENVIRONMENT_ID: ${{ secrets.VITE_ENVIRONMENT_ID }}
+          VITE_MANAGEMENT_API_KEY: ${{ secrets.VITE_MANAGEMENT_API_KEY }}
+        run: npm run model:generate
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add src/model/
+          git commit -m "chore: regenerate delivery models
+
+          Triggered by: ${{ github.event.inputs.triggered_by }}
+          Operation: ${{ github.event.inputs.operation }}
+          Item type: ${{ github.event.inputs.item_type }}
+          Timestamp: ${{ github.event.inputs.timestamp }}"
+          git push
+
+      - name: Summary
+        if: steps.check-changes.outputs.has_changes == 'false'
+        run: |
+          echo "No model changes detected. Models are up to date."
+

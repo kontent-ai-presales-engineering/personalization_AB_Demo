@@ -1,6 +1,5 @@
 import { DeliveryError } from "@kontent-ai/delivery-sdk";
 
-import HeroImage from "../components/HeroImage";
 import PageContent from "../components/PageContent";
 import PageSection from "../components/PageSection";
 import "../index.css";
@@ -9,12 +8,12 @@ import { createClient } from "../utils/client";
 import { FC, useCallback, useState, useEffect } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Replace } from "../utils/types";
-import FeaturedContent from "../components/landingPage/FeaturedContent";
 import { useSearchParams } from "react-router-dom";
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
 import { useSuspenseQueries } from "@tanstack/react-query";
-import { DEFAULT_COLLECTION_CODENAME } from "../utils/constants";
+import KOAHero from "../components/landingPage/KOAHero";
+import KOACampgroundTypes from "../components/landingPage/KOACampgroundTypes";
 
 const useLandingPage = (isPreview: boolean, lang: string | null) => {
   const { environmentId, apiKey, collection } = useAppContext();
@@ -45,7 +44,7 @@ const useLandingPage = (isPreview: boolean, lang: string | null) => {
       .type("landing_page")
       .limitParameter(1)
       .depthParameter(3)
-      .equalsFilter("system.collection", collection ?? DEFAULT_COLLECTION_CODENAME)
+      .equalsFilter("system.collection", collection ?? "default")
       .languageParameter((lang ?? "default") as LanguageCodenames)
       .toPromise()
       .then(res => {
@@ -96,7 +95,7 @@ const LandingPage: FC = () => {
         queryFn: () => {
           console.log('🔍 Fetching landing page with:', {
             environmentId,
-            collection: collection ?? DEFAULT_COLLECTION_CODENAME,
+            collection: collection ?? "default",
             lang: lang ?? 'default',
             isPreview,
           });
@@ -106,7 +105,7 @@ const LandingPage: FC = () => {
             .type("landing_page")
             .limitParameter(1)
             .depthParameter(3)
-            .equalsFilter("system.collection", collection ?? DEFAULT_COLLECTION_CODENAME)
+            .equalsFilter("system.collection", collection ?? "default")
             .languageParameter((lang ?? "default") as LanguageCodenames)
             .toPromise()
             .then(res => {
@@ -145,16 +144,16 @@ const LandingPage: FC = () => {
   useCustomRefresh(onRefresh);
 
   if (!landingPage || !Object.entries(landingPage.elements).length) {
-    console.warn("Landing page not found or empty. Collection:", collection ?? DEFAULT_COLLECTION_CODENAME, "Environment:", environmentId);
+    console.warn("Landing page not found or empty. Collection:", collection ?? "default", "Environment:", environmentId);
     return (
       <div className="flex-grow flex items-center justify-center p-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Landing Page Not Found</h2>
           <p className="text-gray-600 mb-2">
-            No landing page found in collection: <strong>{collection ?? DEFAULT_COLLECTION_CODENAME}</strong>
+            No landing page found in collection: <strong>{collection ?? "default"}</strong>
           </p>
           <p className="text-sm text-gray-500">
-            Check your Kontent.ai project for a landing page in the "{collection ?? DEFAULT_COLLECTION_CODENAME}" collection.
+            Check your Kontent.ai project for a landing page in the "{collection ?? "default"}" collection.
           </p>
         </div>
       </div>
@@ -163,23 +162,27 @@ const LandingPage: FC = () => {
 
   return (
     <div className="flex-grow">
-      <PageSection color="bg-mintGreen">
-        <HeroImage
-          data={{
-            headline: landingPage.elements.headline,
-            subheadline: landingPage.elements.subheadline,
-            heroImage: landingPage.elements.hero_image,
-            itemId: landingPage.system.id
-          }}
-        />
-      </PageSection>
-      <PageSection color="bg-white">
-        <PageContent body={landingPage.elements.body_copy!} itemId={landingPage.system.id} elementName="body_copy" isPreview={isPreview} />
-      </PageSection>
-      <PageSection color="bg-white flex flex-row">
-        <FeaturedContent featuredContent={landingPage.elements.featured_content!} parentId={landingPage.system.id}></FeaturedContent>
+      {/* KOA-Style Hero with Search */}
+      <KOAHero
+        data={{
+          headline: landingPage.elements.headline,
+          subheadline: landingPage.elements.subheadline,
+          heroImage: landingPage.elements.hero_image,
+          itemId: landingPage.system.id
+        }}
+      />
 
-      </PageSection>
+      {/* KOA Campground Types Section */}
+      <KOACampgroundTypes />
+
+      {/* Body Copy from CMS */}
+      {landingPage.elements.body_copy?.value && (
+        <PageSection color="bg-white">
+          <div className="max-w-4xl mx-auto px-4 py-16">
+            <PageContent body={landingPage.elements.body_copy!} itemId={landingPage.system.id} elementName="body_copy" isPreview={isPreview} />
+          </div>
+        </PageSection>
+      )}
     </div>
   );
 };

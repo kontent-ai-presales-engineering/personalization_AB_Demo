@@ -1,58 +1,63 @@
-import { useLocation, useSearchParams } from "react-router-dom";
-import IconSpain from "../icons/IconSpain";
-import IconUnitedStates from "../icons/IconUnitedStates";
-import Container from "./Container";
+import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
-import { IconButton } from "../icons/IconButton";
 
 const Header: React.FC = () => {
-  const location = useLocation();
-  const isResearchPage = location.pathname.match(/^\/research\/[\w-]+$/);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const lang = searchParams.get("lang");
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get("preview") === "true";
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <Container>
-      <div className="py-8 flex flex-col gap-8 xl:gap-0 lg:flex-row items-center justify-between bg-darkGreen">
-        <div className="flex flex-col lg:flex-row gap-5 lg:gap-12 xl:gap-32 items-center list-none">
-          <Logo />
-          <Navigation />
+    <header className="bg-black sticky top-0 z-50">
+      {/* Main Navigation Bar - KOA Style */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
+        <div className="flex items-center justify-between" style={{ paddingTop: '6px', paddingBottom: '6px', minHeight: '52px' }}>
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Logo />
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center flex-1 justify-center">
+            <Navigation />
+          </nav>
+
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-4">
+            {/* Login Button - Mobile */}
+            <Link
+              to="/?preview=true"
+              className="lg:hidden px-4 py-2 text-sm text-white hover:text-koaYellow transition-colors font-sans-semibold"
+            >
+              Login
+            </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 text-white hover:text-koaYellow transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
-        {isResearchPage
-          && (
-            <div className="flex gap-2 xl:pr-16 justify-self-end items-center">
-              <IconButton
-                icon={
-                  <IconUnitedStates
-                    className={`hover:cursor-pointer hover:scale-110`}
-                  />
-                }
-                isSelected={lang === "en-US" || lang === null}
-                onClick={() =>
-                  setSearchParams(prev => {
-                    prev.delete("lang");
-                    return prev;
-                  })}
-              />
-              <IconButton
-                icon={
-                  <IconSpain
-                    className={`hover:cursor-pointer hover:scale-110`}
-                  />
-                }
-                isSelected={lang === "es-ES"}
-                onClick={() => {
-                  setSearchParams(prev => {
-                    prev.set("lang", "es-ES");
-                    return prev;
-                  });
-                }}
-              />
-            </div>
-          )}
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-800 py-4">
+            <Navigation variant="header" />
+          </div>
+        )}
       </div>
-    </Container>
+    </header>
   );
 };
 

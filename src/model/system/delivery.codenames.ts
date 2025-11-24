@@ -27,6 +27,7 @@ export type ContentTypeCodenames =
   | "blog_post"
   | "bynder_image"
   | "call_to_action"
+  | "campground"
   | "disclaimer"
   | "event"
   | "form__hubspot_integration"
@@ -55,12 +56,19 @@ export type CollectionCodenames =
 /**
  * Type representing all workflows
  */
-export type WorkflowCodenames = "academic_resources" | "biographies" | "default" | "patient_resources";
+export type WorkflowCodenames =
+  | "academic_resources"
+  | "biographies"
+  | "default"
+  | "koa_marketing"
+  | "patient_resources"
+  | "untitled_workflow";
 
 /**
  * Type representing all taxonomies
  */
 export type TaxonomyCodenames =
+  | "amenities"
   | "article_type"
   | "australian_museum_topics"
   | "camper_types"
@@ -71,18 +79,23 @@ export type TaxonomyCodenames =
   | "general_healthcare_topics"
   | "medical_specialties"
   | "music_articles"
-  | "personas";
+  | "personas"
+  | "ways_to_stay";
 
 /**
  * Type representing all worksflow steps across all workflows
  */
 export type WorkflowStepCodenames =
+  | "admin_review"
   | "archived"
   | "copy_review"
+  | "draft_5094e00"
   | "draft_97d445e"
   | "draft_a8b162c"
   | "draft_b242d4d"
+  | "draft_d7852bc"
   | "draft"
+  | "human_review"
   | "legal_review"
   | "marketing_review"
   | "medical_review"
@@ -91,18 +104,28 @@ export type WorkflowStepCodenames =
   | "reviewed_1778942"
   | "reviewed"
   | "scheduled"
+  | "seo_generation_1e32614"
+  | "seo_generation"
   | "staff_member_review";
 
 /**
  * Type representing all element codenames across all content types
  */
 export type ElementCodenames =
+  | "address"
+  | "amenities"
   | "australian_museum_topics"
   | "author"
   | "autoplay"
+  | "banner_body"
+  | "banner_header"
+  | "banner_image"
   | "biography"
   | "body_copy"
   | "body"
+  | "book_now_cta_background_image"
+  | "book_now_cta_background_video_link"
+  | "book_now_cta_text"
   | "button_label"
   | "button_link"
   | "bynder_asset"
@@ -114,6 +137,7 @@ export type ElementCodenames =
   | "cta_a"
   | "cta_b"
   | "description"
+  | "email_address"
   | "email"
   | "end_date"
   | "event_topic"
@@ -131,6 +155,7 @@ export type ElementCodenames =
   | "last_name"
   | "linkedin"
   | "medical_specialties"
+  | "menu"
   | "metadata__description"
   | "metadata__keywords"
   | "metadata__title"
@@ -139,6 +164,7 @@ export type ElementCodenames =
   | "name"
   | "persona"
   | "personas"
+  | "phone_number"
   | "phone"
   | "pim_integration_e_g__shopify"
   | "prefix"
@@ -156,5 +182,6 @@ export type ElementCodenames =
   | "url_slug"
   | "url"
   | "video_link"
+  | "ways_to_stay"
   | "website"
   | "x";

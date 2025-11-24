@@ -20,6 +20,8 @@ import Page from "./pages/Page.tsx";
 import OurShopPage from "./pages/ShopPage.tsx";
 import ProductDetailPage from "./pages/ProductDetailPage.tsx";
 import PersonalTastePage from "./pages/PersonalTastePage.tsx";
+import CampgroundsListingPage from "./pages/CampgroundsListingPage.tsx";
+import CampgroundDetailPage from "./pages/CampgroundDetailPage.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +63,14 @@ const BaseRouting: RouteObject[] = [
   {
     path: "articles/:slug",
     Component: ArticleDetailPage,
+  },
+  {
+    path: "campgrounds",
+    Component: CampgroundsListingPage,
+  },
+  {
+    path: "campgrounds/:slug",
+    Component: CampgroundDetailPage,
   },
   {
     path: "our-team",

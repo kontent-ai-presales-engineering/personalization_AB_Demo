@@ -10,7 +10,7 @@ import PersonaSelector from "./PersonaSelector";
 const Layout: FC<PropsWithChildren> = () => (
   <AppContextComponent>
     <SmartLinkContextComponent>
-      <div className="flex flex-col min-h-screen bg-darkGreen">
+      <div className="flex flex-col min-h-screen bg-white">
         <ScrollRestoration getKey={location => location.pathname} />
         <Header />
         <Outlet />

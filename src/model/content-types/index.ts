@@ -18,6 +18,7 @@ export * from "./article.ts";
 export * from "./blogPost.ts";
 export * from "./bynderImage.ts";
 export * from "./callToAction.ts";
+export * from "./campground.ts";
 export * from "./disclaimer.ts";
 export * from "./event.ts";
 export * from "./formHubspotIntegration.ts";

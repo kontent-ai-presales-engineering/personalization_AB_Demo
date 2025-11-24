@@ -14,6 +14,18 @@ export default {
         darkGreen: '#0D3311',
         gold: '#FFCC00',
         mintGreen: '#ADEBB3',
+        koaYellow: '#ffd100', // KOA signature yellow (#ffd100 from CSS)
+        koaYellowDark: '#cca700', // Darker yellow for hover
+        koaGreen: '#006B3C', // KOA green
+        koaRed: '#e4002b', // KOA red (#e4002b from CSS)
+        koaBlue: '#0072ce', // KOA blue
+        koaGold: '#ffb500', // KOA gold background
+        koaBlack: '#000000', // KOA black
+        koaGray: {
+          light: '#bbbcbc',
+          DEFAULT: '#767676',
+          dark: '#2e2e2e',
+        },
         grey: {
           light: "#8e8e8e",
           DEFAULT: "#3b3b3b",
@@ -61,7 +73,11 @@ export default {
 
     },
       fontFamily: {
-        sans: ['"Source Sans 3"', 'Arial', 'sans-serif'],
+        sans: ['"Gibson Regular"', 'Arial', 'sans-serif'],
+        'sans-semibold': ['"Gibson SemiBold"', 'Arial', 'sans-serif'],
+        'sans-bold': ['"Gibson Bold"', 'Arial', 'sans-serif'],
+        fjalla: ['"Fjalla one"', 'Arial', 'sans-serif'],
+        voltage: ['"Voltage Bold"', 'Arial', 'sans-serif'],
         libre: ['"Lexend"', "Arial"],
         lexend: ['"Lexend"', 'Arial', 'sans-serif']
       }

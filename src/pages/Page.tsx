@@ -13,9 +13,10 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
 import { useSuspenseQueries } from "@tanstack/react-query";
+import { CollectionCodenames } from "../model";
 
 const usePage = (isPreview: boolean, lang: string | null, slug: string | null) => {
-  const { environmentId, apiKey } = useAppContext();
+  const { environmentId, apiKey, collection } = useAppContext();
   const [page, setPage] = useState<Replace<Page, { elements: Partial<Page["elements"]> }> | null>(null);
 
   const handleLiveUpdate = useCallback((data: IUpdateMessageData) => {
@@ -38,29 +39,50 @@ const usePage = (isPreview: boolean, lang: string | null, slug: string | null) =
   }, [page, environmentId, apiKey, isPreview]);
 
   useEffect(() => {
+    if (!slug) {
+      setPage(null);
+      return;
+    }
+
+    // Normalize slug: remove leading slash if present
+    const normalizedSlug = slug.startsWith('/') ? slug.slice(1) : slug;
+    const slugWithSlash = `/${normalizedSlug}`;
+
     createClient(environmentId, apiKey, isPreview)
       .items<Page>()
       .type("page")
-      .limitParameter(1)
-      .equalsFilter("elements.url", slug ?? "")
+      .limitParameter(50) // Get more items to search through
+      .collections([(collection ?? 'default') as CollectionCodenames])
       .languageParameter((lang ?? "default") as LanguageCodenames)
       .toPromise()
       .then(res => {
-        const item = res.data.items[0] as Replace<Page, { elements: Partial<Page["elements"]> }> | undefined;
+        // Try to find page by URL field (matching both with and without leading slash)
+        const item = res.data.items.find((page: Page) => {
+          const pageUrl = page.elements.url?.value || "";
+          // UrlSlugElement typically stores without leading slash, but check both formats
+          const normalizedPageUrl = pageUrl.startsWith('/') ? pageUrl.slice(1) : pageUrl;
+          return normalizedPageUrl === normalizedSlug || 
+                 pageUrl === slugWithSlash || 
+                 pageUrl === slug ||
+                 pageUrl === normalizedSlug;
+        }) as Replace<Page, { elements: Partial<Page["elements"]> }> | undefined;
+        
         if (item) {
           setPage(item);
         } else {
+          console.warn(`Page not found for slug: ${slug}. Searched ${res.data.items.length} pages.`);
           setPage(null);
         }
       })
       .catch((err) => {
         if (err instanceof DeliveryError) {
+          console.error(`Error fetching page for slug ${slug}:`, err);
           setPage(null);
         } else {
           throw err;
         }
       });
-  }, [environmentId, apiKey, isPreview, lang]);
+  }, [environmentId, apiKey, isPreview, lang, slug, collection]);
 
   useLivePreview(handleLiveUpdate);
 
@@ -68,7 +90,7 @@ const usePage = (isPreview: boolean, lang: string | null, slug: string | null) =
 };
 
 const Page: FC = () => {
-  const { environmentId, apiKey } = useAppContext();
+  const { environmentId, apiKey, collection } = useAppContext();
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
   const { slug } = useParams();
@@ -79,24 +101,46 @@ const Page: FC = () => {
   const [pageData] = useSuspenseQueries({
     queries: [
       {
-        queryKey: ["page"],
-        queryFn: () =>
-          createClient(environmentId, apiKey, isPreview)
+        queryKey: ["page", slug, lang, isPreview],
+        queryFn: () => {
+          if (!slug) return null;
+          
+          // Normalize slug: remove leading slash if present
+          const normalizedSlug = slug.startsWith('/') ? slug.slice(1) : slug;
+          const slugWithSlash = `/${normalizedSlug}`;
+
+          return createClient(environmentId, apiKey, isPreview)
             .items<Page>()
             .type("page")
-            .limitParameter(1)
-            .equalsFilter("elements.url", slug ?? "")
+            .limitParameter(50) // Get more items to search through
+            .collections([(collection ?? 'default') as CollectionCodenames])
             .languageParameter((lang ?? "default") as LanguageCodenames)
             .toPromise()
-            .then(res =>
-              res.data.items[0] as Replace<Page, { elements: Partial<Page["elements"]> }> ?? null
-            )
+            .then(res => {
+              // Try to find page by URL field (matching both with and without leading slash)
+              const item = res.data.items.find((page: Page) => {
+                const pageUrl = page.elements.url?.value || "";
+                // UrlSlugElement typically stores without leading slash, but check both formats
+                const normalizedPageUrl = pageUrl.startsWith('/') ? pageUrl.slice(1) : pageUrl;
+                return normalizedPageUrl === normalizedSlug || 
+                       pageUrl === slugWithSlash || 
+                       pageUrl === slug ||
+                       pageUrl === normalizedSlug;
+              }) as Replace<Page, { elements: Partial<Page["elements"]> }> | undefined;
+              
+              if (!item) {
+                console.warn(`Page not found for slug: ${slug}. Available URLs:`, res.data.items.map((p: Page) => p.elements.url?.value));
+              }
+              
+              return item ?? null;
+            })
             .catch((err) => {
               if (err instanceof DeliveryError) {
                 return null;
               }
               throw err;
-            }),
+            });
+        },
       },
     ],
   });
@@ -122,17 +166,15 @@ const Page: FC = () => {
     <div className="flex-grow">
       {
         page.elements.headline?.value && (
-          <PageSection color="bg-mintGreen">
-            <HeroImage
-              data={{
-                headline: page.elements.headline,
-                subheadline: page.elements.subheadline,
-                heroImage: page.elements.hero_image,
-                itemId: page.system.id
-              }}
-              buttonLink="nolink"
-            />
-          </PageSection>
+          <HeroImage
+            data={{
+              headline: page.elements.headline,
+              subheadline: page.elements.subheadline,
+              heroImage: page.elements.hero_image,
+              itemId: page.system.id
+            }}
+            buttonLink="nolink"
+          />
         )
       }
       <PageSection color="bg-white">

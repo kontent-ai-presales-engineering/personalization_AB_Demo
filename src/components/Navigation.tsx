@@ -6,16 +6,19 @@ import { DeliveryError } from "@kontent-ai/delivery-sdk";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { useAppContext } from "../context/AppContext";
 import { createPreviewLink } from "../utils/link";
-import { DEFAULT_COLLECTION_CODENAME } from "../utils/constants";
 
-const Navigation: FC = () => {
+type NavigationProps = {
+  variant?: "header" | "footer";
+};
+
+const Navigation: FC<NavigationProps> = ({ variant = "header" }) => {
   const { environmentId, apiKey, collection } = useAppContext();
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
 
   const lang = searchParams.get("lang");
   const collectionParam = searchParams.get("collection")
-  const collectionFilter = collectionParam ?? collection ?? DEFAULT_COLLECTION_CODENAME;
+  const collectionFilter = collectionParam ?? collection ?? "default";
 
   const [navigation] = useSuspenseQueries({
     queries: [
@@ -49,20 +52,65 @@ const Navigation: FC = () => {
     ],
   });
 
-  const createMenuLink = (name: string, link: string) => (
-    <li key={name}>
-      <NavLink to={createPreviewLink(link, isPreview)} className="text-base leading-5 text-white w-fit block hover:text-mintGreen uppercase font-lexend">{name}</NavLink>
-    </li>
-  );
-
   const navigationItems = navigation.data || [];
 
+  // Default KOA navigation items if CMS doesn't provide them
+  const defaultNavItems = [
+    { name: "Find a Campground", link: "/articles" },
+    { name: "Camping at KOA", link: "/articles" },
+    { name: "Ways To Stay", link: "/articles" },
+    { name: "Rewards Program", link: "/articles" },
+    { name: "Deals", link: "/articles" },
+    { name: "Resources", link: "/articles" },
+    { name: "Connect", link: "/articles" },
+  ];
+
+  const displayItems = navigationItems.length > 0 ? navigationItems : defaultNavItems;
+
+  const isFooter = variant === "footer";
+  
+  // Header styling - KOA style: black bar with white text, active links in yellow
+  const headerBaseClasses = "text-white font-sans-semibold text-lg px-4 py-1 relative";
+  const headerActiveClasses = "text-koaYellow";
+  const headerHoverClasses = "hover:text-koaYellow";
+  
+  // Footer styling
+  const footerBaseClasses = "text-white font-sans-semibold text-sm px-4 py-1 relative";
+  const footerActiveClasses = "text-koaYellow";
+  const footerHoverClasses = "hover:text-koaYellow";
+  
+  const baseClasses = isFooter ? footerBaseClasses : headerBaseClasses;
+  const activeClasses = isFooter ? footerActiveClasses : headerActiveClasses;
+  const hoverClasses = isFooter ? footerHoverClasses : headerHoverClasses;
+
+  const createMenuLink = (name: string, link: string) => (
+    <NavLink
+      key={name}
+      to={createPreviewLink(link, isPreview)}
+      className={({ isActive }) =>
+        `${baseClasses} ${hoverClasses} transition-colors ${
+          isActive ? activeClasses : ""
+        }`
+      }
+      style={{ 
+        fontFamily: '"Gibson SemiBold", Arial, sans-serif',
+        fontSize: isFooter ? '0.9em' : '1.1rem',
+        paddingTop: '0.3rem',
+        paddingBottom: '0.3rem',
+      }}
+    >
+      {name}
+    </NavLink>
+  );
+
   return (
-    <nav>
-      <menu className="flex flex-col lg:flex-row gap-5 lg:gap-[60px] items-center list-none text-white">
-        {navigationItems.map(({ name, link }) => createMenuLink(name, link))}
-      </menu>
-    </nav>
+    <ul className="flex flex-col lg:flex-row gap-0 items-start lg:items-center list-none" style={{ margin: 0, padding: 0 }}>
+      {displayItems.map(({ name, link }) => (
+        <li key={name} className="list-none" style={{ paddingLeft: isFooter ? '0' : '15px' }}>
+          {createMenuLink(name, link)}
+        </li>
+      ))}
+    </ul>
   );
 };
 

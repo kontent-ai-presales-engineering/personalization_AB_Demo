@@ -5,20 +5,38 @@ import { createPreviewLink } from "../utils/link";
 interface ButtonLinkProps {
   href: string;
   children: React.ReactNode;
-  style?: "mintGreen" | "transparent";
+  style?: "yellow" | "red" | "blue" | "yellow-border" | "transparent";
   className?: string;
 }
 
-const ButtonLink: React.FC<ButtonLinkProps> = ({ href, children, style = "transparent", className = "" }) => {
+const ButtonLink: React.FC<ButtonLinkProps> = ({ href, children, style = "yellow", className = "" }) => {
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
+
+  // KOA Button Styles
+  const getButtonClasses = () => {
+    const baseClasses = "inline-block px-8 py-3 font-sans-semibold text-base transition-colors duration-200 border-0";
+    
+    switch (style) {
+      case "yellow":
+        return `${baseClasses} bg-koaYellow text-black hover:bg-koaYellowDark hover:text-black`;
+      case "red":
+        return `${baseClasses} bg-koaRed text-white hover:bg-[#b10021] hover:text-white`;
+      case "blue":
+        return `${baseClasses} bg-koaBlue text-white hover:bg-[#00569b] hover:text-white`;
+      case "yellow-border":
+        return `${baseClasses} bg-transparent text-white border-2 border-koaYellow hover:text-koaYellow`;
+      case "transparent":
+      default:
+        return `${baseClasses} bg-transparent text-white hover:text-koaYellow`;
+    }
+  };
 
   return (
     <NavLink
       to={createPreviewLink(href, isPreview)}
-      className={`${
-        style === "mintGreen" ? "button-mintGreen" : ""
-      } inline-block w-fit px-12 py-3 text-body-sm font-semibold text-button-text-color hover:text-button-text-hover-color bg-button-background-color hover:bg-button-background-hover-color border-2 border-button-border-color hover:border-button-border-hover-color rounded-full transition-colors duration-200 ${className}`}
+      className={`${getButtonClasses()} ${className}`}
+      style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif', borderRadius: 0 }}
     >
       {children}
     </NavLink>
