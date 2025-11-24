@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Campground } from "../model";
 import { PortableText } from "@portabletext/react";
@@ -6,10 +6,28 @@ import { transformToPortableText } from "@kontent-ai/rich-text-resolver";
 import { defaultPortableRichTextResolvers } from "../utils/richtext";
 import PageSection from "../components/PageSection";
 import { createElementSmartLink, createItemSmartLink } from "../utils/smartlink";
+import { useNavigationContext } from "../context/NavigationContext";
 
 const CampgroundDetailPage: React.FC = () => {
   const location = useLocation();
   const campground = location.state?.campground as Campground | undefined;
+  const { setNavigationItems } = useNavigationContext();
+
+  // Set navigation items from campground menu when component mounts
+  useEffect(() => {
+    if (campground?.elements.menu?.linkedItems) {
+      const menuItems = campground.elements.menu.linkedItems.map(page => ({
+        name: page.elements.headline?.value || "",
+        link: page.elements.url?.value || "",
+      }));
+      setNavigationItems(menuItems);
+    }
+
+    // Clear navigation items when component unmounts (navigating away)
+    return () => {
+      setNavigationItems(null);
+    };
+  }, [campground, setNavigationItems]);
 
   if (!campground) {
     return (

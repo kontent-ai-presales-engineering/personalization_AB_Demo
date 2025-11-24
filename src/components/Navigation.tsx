@@ -5,6 +5,7 @@ import { CollectionCodenames, LandingPage, LanguageCodenames } from "../model";
 import { DeliveryError } from "@kontent-ai/delivery-sdk";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { useAppContext } from "../context/AppContext";
+import { useNavigationContext } from "../context/NavigationContext";
 import { createPreviewLink } from "../utils/link";
 
 type NavigationProps = {
@@ -13,6 +14,7 @@ type NavigationProps = {
 
 const Navigation: FC<NavigationProps> = ({ variant = "header" }) => {
   const { environmentId, apiKey, collection } = useAppContext();
+  const { navigationItems: contextNavigationItems } = useNavigationContext();
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
 
@@ -20,6 +22,7 @@ const Navigation: FC<NavigationProps> = ({ variant = "header" }) => {
   const collectionParam = searchParams.get("collection")
   const collectionFilter = collectionParam ?? collection ?? "default";
 
+  // Fetch landing page navigation (always runs, but we prioritize context if available)
   const [navigation] = useSuspenseQueries({
     queries: [
       {
@@ -52,7 +55,8 @@ const Navigation: FC<NavigationProps> = ({ variant = "header" }) => {
     ],
   });
 
-  const navigationItems = navigation.data || [];
+  // Prioritize context navigation items (from campground menu), fallback to landing page navigation
+  const navigationItems = contextNavigationItems || navigation.data || [];
 
   // Default KOA navigation items if CMS doesn't provide them
   const defaultNavItems = [
