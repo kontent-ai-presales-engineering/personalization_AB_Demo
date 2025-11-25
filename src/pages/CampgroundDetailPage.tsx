@@ -1,17 +1,105 @@
-import React, { useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Campground } from "../model";
+import React, { useEffect, useCallback } from "react";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
+import { Campground, LanguageCodenames } from "../model";
 import { PortableText } from "@portabletext/react";
 import { transformToPortableText } from "@kontent-ai/rich-text-resolver";
 import { defaultPortableRichTextResolvers } from "../utils/richtext";
 import PageSection from "../components/PageSection";
 import { createElementSmartLink, createItemSmartLink } from "../utils/smartlink";
 import { useNavigationContext } from "../context/NavigationContext";
+import { useAppContext } from "../context/AppContext";
+import { createClient } from "../utils/client";
+import { DeliveryError } from "@kontent-ai/delivery-sdk";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
+import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 
 const CampgroundDetailPage: React.FC = () => {
   const location = useLocation();
-  const campground = location.state?.campground as Campground | undefined;
+  const { slug } = useParams();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get("preview") === "true";
+  const lang = searchParams.get("lang");
+  const { environmentId, apiKey } = useAppContext();
+  const queryClient = useQueryClient();
   const { setNavigationItems } = useNavigationContext();
+
+  // Try to get campground from location state first (internal navigation)
+  const stateCampground = location.state?.campground as Campground | undefined;
+
+  // Fetch campground from API if not in state (direct URL access, like Kontent.ai preview)
+  const { data: fetchedCampground, refetch } = useQuery({
+    queryKey: ["campground-detail", slug, lang, isPreview],
+    queryFn: async () => {
+      if (!slug) return null;
+      
+      try {
+        // Normalize slug - remove any "campgrounds/" prefix if present
+        const normalizedSlug = slug.replace(/^campgrounds\//, '');
+        
+        // Fetch campground by URL field
+        const response = await createClient(environmentId, apiKey, isPreview)
+          .items<Campground>()
+          .type("campground")
+          .languageParameter((lang ?? "default") as LanguageCodenames)
+          .depthParameter(3)
+          .toPromise();
+
+        // Find campground matching the slug (check both url value and codename)
+        const campground = response.data.items.find(c => {
+          const urlValue = c.elements.url?.value || '';
+          const normalizedUrl = urlValue.startsWith('/') ? urlValue.slice(1) : urlValue;
+          const cleanUrl = normalizedUrl.replace(/^campgrounds\//, '');
+          return cleanUrl === normalizedSlug || c.system.codename === normalizedSlug;
+        });
+
+        return campground ?? null;
+      } catch (err) {
+        if (err instanceof DeliveryError) {
+          return null;
+        }
+        throw err;
+      }
+    },
+    enabled: !!slug && !stateCampground, // Only fetch if slug exists and no state campground
+  });
+
+  // Use state campground if available, otherwise use fetched campground
+  const campground = stateCampground || fetchedCampground || null;
+
+  // Handle live preview updates
+  const handleLiveUpdate = useCallback((data: IUpdateMessageData) => {
+    if (campground) {
+      applyUpdateOnItemAndLoadLinkedItems(
+        campground,
+        data,
+        (codenamesToFetch) => createClient(environmentId, apiKey, isPreview)
+          .items()
+          .inFilter("system.codename", [...codenamesToFetch])
+          .toPromise()
+          .then(res => res.data.items)
+      ).then((updatedItem) => {
+        if (updatedItem) {
+          queryClient.setQueryData(["campground-detail", slug, lang, isPreview], updatedItem);
+        }
+      });
+    }
+  }, [campground, environmentId, apiKey, isPreview, slug, lang, queryClient]);
+
+  useLivePreview(handleLiveUpdate);
+
+  const onRefresh = useCallback(
+    (_: IRefreshMessageData, metadata: IRefreshMessageMetadata, originalRefresh: () => void) => {
+      if (metadata.manualRefresh) {
+        originalRefresh();
+      } else {
+        refetch();
+      }
+    },
+    [refetch],
+  );
+
+  useCustomRefresh(onRefresh);
 
   // Set navigation items from campground menu when component mounts
   useEffect(() => {
