@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import PageSection from "../components/PageSection";
 import { useAppContext } from "../context/AppContext";
 import { createClient } from "../utils/client";
@@ -14,6 +14,8 @@ import { createElementSmartLink, createItemSmartLink } from "../utils/smartlink"
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { Replace } from "../utils/types";
 import CampgroundList from "../components/campgrounds/CampgroundList";
+import { getUserLocation } from "../utils/location";
+import { calculateDistance } from "../utils/distance";
 
 const useCampgroundsListingPage = (isPreview: boolean, lang: string | null) => {
   const { environmentId, apiKey } = useAppContext();
@@ -65,8 +67,26 @@ const CampgroundsListingPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
   const lang = searchParams.get("lang");
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const campgroundsListingPage = useCampgroundsListingPage(isPreview, lang);
+
+  // Load location from cookie and listen for changes
+  useEffect(() => {
+    const savedLocation = getUserLocation();
+    if (savedLocation) {
+      setUserLocation(savedLocation);
+    }
+
+    const handleLocationChange = (event: CustomEvent) => {
+      setUserLocation(event.detail.location);
+    };
+
+    window.addEventListener('locationChanged', handleLocationChange as EventListener);
+    return () => {
+      window.removeEventListener('locationChanged', handleLocationChange as EventListener);
+    };
+  }, []);
 
   const [landingPageData, campgroundsData] = useSuspenseQueries({
     queries: [
@@ -112,7 +132,71 @@ const CampgroundsListingPage: React.FC = () => {
     ],
   });
 
-  const campgrounds = campgroundsData.data || [];
+  // Sort campgrounds by distance if user location is available
+  const campgrounds = useMemo(() => {
+    const fetchedCampgrounds = campgroundsData.data || [];
+    
+    if (!userLocation) {
+      // No location, return original order (sorted by name)
+      console.log('📍 No user location - sorting by name');
+      return fetchedCampgrounds;
+    }
+
+    console.log('📍 User location:', userLocation.latitude, userLocation.longitude);
+
+    // Filter campgrounds that have coordinates
+    const campgroundsWithCoords = fetchedCampgrounds.filter(
+      (campground) =>
+        campground.elements.latitude_coordinate?.value !== null &&
+        campground.elements.latitude_coordinate?.value !== undefined &&
+        campground.elements.longitude_coordinate?.value !== null &&
+        campground.elements.longitude_coordinate?.value !== undefined
+    );
+
+    // Filter campgrounds without coordinates
+    const campgroundsWithoutCoords = fetchedCampgrounds.filter(
+      (campground) =>
+        campground.elements.latitude_coordinate?.value === null ||
+        campground.elements.latitude_coordinate?.value === undefined ||
+        campground.elements.longitude_coordinate?.value === null ||
+        campground.elements.longitude_coordinate?.value === undefined
+    );
+
+    console.log(`📍 Campgrounds with coordinates: ${campgroundsWithCoords.length}, without: ${campgroundsWithoutCoords.length}`);
+
+    // Calculate distances and sort
+    const campgroundsWithDistance = campgroundsWithCoords.map((campground) => {
+      const distance = calculateDistance(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+        },
+        {
+          latitude: campground.elements.latitude_coordinate!.value!,
+          longitude: campground.elements.longitude_coordinate!.value!,
+        }
+      );
+      return { campground, distance };
+    });
+
+    // Sort by distance (closest first)
+    campgroundsWithDistance.sort((a, b) => a.distance - b.distance);
+
+    console.log('📍 Sorted campgrounds by distance (closest first):', 
+      campgroundsWithDistance.map(item => ({
+        name: item.campground.elements.name?.value,
+        distance: `${item.distance.toFixed(1)} miles`
+      }))
+    );
+
+    // Return sorted campgrounds with coordinates first, then those without coordinates
+    const sortedCampgrounds = [
+      ...campgroundsWithDistance.map((item) => item.campground),
+      ...campgroundsWithoutCoords,
+    ];
+
+    return sortedCampgrounds;
+  }, [campgroundsData.data, userLocation]);
 
   const onRefresh = useCallback(
     (_: IRefreshMessageData, metadata: IRefreshMessageMetadata, originalRefresh: () => void) => {

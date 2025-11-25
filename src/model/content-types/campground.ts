@@ -157,6 +157,46 @@ export type Campground = CoreContentType<
      * Id: ce448b05-531f-4d83-a8a3-8517a5430b2d
      */
     readonly url: Elements.UrlSlugElement;
+    /**
+     * Google Place ID
+     *
+     * Type: text
+     * Required: false
+     * Codename: google_place_id
+     * Id: 5b954266-3d07-43a8-a295-da378c91c348
+     * Guidelines: This element contains a reference to a campground's Google Place ID, which is used by the site to identify and display associated Google Reviews for a campground using google's Places API
+     */
+    readonly google_place_id: Elements.TextElement;
+    /**
+     * Yelp Business ID
+     *
+     * Type: text
+     * Required: false
+     * Codename: yelp_business_id
+     * Id: 7487270a-b26d-4f96-a39e-5329fc57f571
+     * Guidelines: This element contains a reference to a campground's Yelp Business ID, which is used by the site to identify and display associated Yelp Reviews for a campground using Yelp's Business API
+     */
+    readonly yelp_business_id: Elements.TextElement;
+    /**
+     * Latitude Coordinate
+     *
+     * Type: number
+     * Required: true
+     * Codename: latitude_coordinate
+     * Id: 6e022cfe-c7cf-4030-84b3-a84daf95f4e0
+     * Guidelines: Enter a value between  -90 and 90
+     */
+    readonly latitude_coordinate: Elements.NumberElement;
+    /**
+     * Longitude Coordinate
+     *
+     * Type: number
+     * Required: false
+     * Codename: longitude_coordinate
+     * Id: 43ecdec8-77aa-4c29-a370-0fafc7197deb
+     * Guidelines: Enter a value between -180 to 180
+     */
+    readonly longitude_coordinate: Elements.NumberElement;
   } & Metadata,
   "campground"
 >;
@@ -181,7 +221,11 @@ export type CampgroundElementCodenames =
   | "metadata__title"
   | "metadata__keywords"
   | "metadata__description"
-  | "url";
+  | "url"
+  | "google_place_id"
+  | "yelp_business_id"
+  | "latitude_coordinate"
+  | "longitude_coordinate";
 
 /**
  * Type guard for Campground

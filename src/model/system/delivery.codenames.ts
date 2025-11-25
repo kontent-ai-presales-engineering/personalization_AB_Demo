@@ -43,15 +43,19 @@ export type ContentTypeCodenames =
  * Type representing all collections
  */
 export type CollectionCodenames =
-  | "academic_content"
   | "alpine"
   | "austin_east"
+  | "bar_harbor"
   | "campground_template"
   | "default"
   | "lake_conroe"
   | "operations"
-  | "patient_resources"
-  | "shop_resources";
+  | "orlando"
+  | "portland"
+  | "san_diego"
+  | "sedona"
+  | "south_miami"
+  | "yellowstone";
 
 /**
  * Type representing all workflows
@@ -114,6 +118,7 @@ export type WorkflowStepCodenames =
 export type ElementCodenames =
   | "address"
   | "amenities"
+  | "api_preview"
   | "australian_museum_topics"
   | "author"
   | "autoplay"
@@ -145,6 +150,7 @@ export type ElementCodenames =
   | "featured_content"
   | "first_name"
   | "form"
+  | "google_place_id"
   | "guidelines"
   | "headline"
   | "hero_image"
@@ -153,7 +159,9 @@ export type ElementCodenames =
   | "introduction"
   | "job_title"
   | "last_name"
+  | "latitude_coordinate"
   | "linkedin"
+  | "longitude_coordinate"
   | "medical_specialties"
   | "menu"
   | "metadata__description"
@@ -184,4 +192,5 @@ export type ElementCodenames =
   | "video_link"
   | "ways_to_stay"
   | "website"
-  | "x";
+  | "x"
+  | "yelp_business_id";

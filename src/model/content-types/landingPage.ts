@@ -80,6 +80,15 @@ export type LandingPage = CoreContentType<
      * Id: 9d5080db-f2bb-41a1-bcbe-11786ee3a59d
      */
     readonly subpages: Elements.LinkedItemsElement<Page>;
+    /**
+     * API preview
+     *
+     * Type: custom
+     * Required: false
+     * Codename: api_preview
+     * Id: fe287d78-d3d5-4f39-8f43-483996cdfe7a
+     */
+    readonly api_preview: Elements.CustomElement;
   },
   "landing_page"
 >;
@@ -93,7 +102,8 @@ export type LandingPageElementCodenames =
   | "hero_image"
   | "body_copy"
   | "featured_content"
-  | "subpages";
+  | "subpages"
+  | "api_preview";
 
 /**
  * Type guard for Landing Page
