@@ -1,14 +1,18 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createItemSmartLink } from "../../utils/smartlink";
 import { Campground } from "../../model";
 import { transformToPortableText } from "@kontent-ai/rich-text-resolver";
+import { createPreviewLink } from "../../utils/link";
 
 type CampgroundListProps = Readonly<{
   campgrounds: ReadonlyArray<Campground>;
 }>;
 
 const CampgroundCard: React.FC<{ campground: Campground }> = ({ campground }) => {
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get("preview") === "true";
+
   // Extract text summary from rich text banner_body
   let summary = "";
   if (campground.elements.banner_body?.value) {
@@ -30,9 +34,11 @@ const CampgroundCard: React.FC<{ campground: Campground }> = ({ campground }) =>
     normalizedUrl = normalizedUrl.replace(/^campgrounds\//, '');
   }
 
+  const campgroundPath = `/campgrounds/${normalizedUrl}`;
+
   return (
     <Link
-      to={`/campgrounds/${normalizedUrl}`}
+      to={createPreviewLink(campgroundPath, isPreview)}
       state={{ campground }}
       className="block bg-white border-0 shadow-md hover:shadow-lg transition-shadow overflow-hidden"
       style={{ borderRadius: 0 }}
