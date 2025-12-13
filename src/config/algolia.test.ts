@@ -98,12 +98,14 @@ export async function testAlgoliaSearch(query: string = '') {
     const directClient = liteClient(algoliaAppId, algoliaSearchKey);
     
     // Use v5 API: searchForHits
+    // Extract hitsPerPage from defaultSearchParams to avoid duplication
+    const { hitsPerPage, ...otherParams } = defaultSearchParams;
     const result = await directClient.searchForHits({
       requests: [{
         indexName: testIndexName,
         query,
-        hitsPerPage: 5,
-        ...defaultSearchParams,
+        ...otherParams,
+        hitsPerPage: 5, // Use fewer results for testing
       }],
     });
 

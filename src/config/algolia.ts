@@ -1,5 +1,5 @@
 import { liteClient } from 'algoliasearch/lite';
-import type { SearchClient } from 'algoliasearch/lite';
+import type { LiteClient } from 'algoliasearch/lite';
 import { AlgoliaCampground } from '../types/algolia';
 
 /**
@@ -35,7 +35,7 @@ if (!algoliaSearchKey) {
  * We create an adapter to make it compatible with react-instantsearch-hooks-web
  * which expects a client with a search() method that matches the v4 API format.
  */
-const createSearchClientAdapter = (client: SearchClient) => {
+const createSearchClientAdapter = (client: LiteClient) => {
   return {
     search: (requests: any[]) => {
       // react-instantsearch-hooks-web expects a search method that takes an array of requests
