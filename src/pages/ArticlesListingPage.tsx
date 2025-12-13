@@ -191,7 +191,7 @@ const useArticleTypes = (isPreview: boolean) => {
 
   useEffect(() => {
     createClient(environmentId, apiKey, isPreview)
-      .taxonomy("music_articles")
+      .taxonomy("article_type")
       .toPromise()
       .then(res => {
         setTypes(res.data.taxonomy);
