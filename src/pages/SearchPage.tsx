@@ -1,6 +1,5 @@
 import React from 'react';
 import { InstantSearch } from 'react-instantsearch-hooks-web';
-import { useSearchParams } from 'react-router-dom';
 import { searchClient, indexName, isAlgoliaConfigured } from '../config/algolia';
 import SearchBox from '../components/search/SearchBox';
 import FacetFilters from '../components/search/FacetFilters';

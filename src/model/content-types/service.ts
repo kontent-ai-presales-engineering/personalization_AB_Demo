@@ -15,7 +15,6 @@
 
 import type { Elements } from "@kontent-ai/delivery-sdk";
 import type { CoreContentType } from "../system/index.ts";
-import type { MedicalSpecialties } from "../taxonomies/index.ts";
 import type { Person } from "./index.ts";
 
 /**
@@ -73,15 +72,6 @@ export type Service = CoreContentType<
      */
     readonly team: Elements.LinkedItemsElement<Person>;
     /**
-     * Medical Specialties
-     *
-     * Type: taxonomy
-     * Required: false
-     * Codename: medical_specialties
-     * Id: 7be1529e-bf12-457c-bb7e-b852bd81ec0f
-     */
-    readonly medical_specialties: Elements.TaxonomyElement<MedicalSpecialties, "medical_specialties">;
-    /**
      * URL slug
      *
      * Type: url_slug
@@ -97,14 +87,7 @@ export type Service = CoreContentType<
 /**
  * Type representing all available element codenames for Service
  */
-export type ServiceElementCodenames =
-  | "name"
-  | "image"
-  | "summary"
-  | "description"
-  | "team"
-  | "medical_specialties"
-  | "url_slug";
+export type ServiceElementCodenames = "name" | "image" | "summary" | "description" | "team" | "url_slug";
 
 /**
  * Type guard for Service

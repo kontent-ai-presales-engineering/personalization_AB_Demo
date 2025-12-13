@@ -60,13 +60,7 @@ export type CollectionCodenames =
 /**
  * Type representing all workflows
  */
-export type WorkflowCodenames =
-  | "academic_resources"
-  | "biographies"
-  | "default"
-  | "koa_marketing"
-  | "patient_resources"
-  | "untitled_workflow";
+export type WorkflowCodenames = "default" | "koa_marketing" | "untitled_workflow";
 
 /**
  * Type representing all taxonomies
@@ -80,10 +74,8 @@ export type TaxonomyCodenames =
   | "channel"
   | "event_topic"
   | "event_type"
-  | "general_healthcare_topics"
-  | "medical_specialties"
-  | "music_articles"
   | "personas"
+  | "region"
   | "ways_to_stay";
 
 /**
@@ -94,23 +86,13 @@ export type WorkflowStepCodenames =
   | "archived"
   | "copy_review"
   | "draft_5094e00"
-  | "draft_97d445e"
-  | "draft_a8b162c"
-  | "draft_b242d4d"
   | "draft_d7852bc"
   | "draft"
   | "human_review"
-  | "legal_review"
-  | "marketing_review"
-  | "medical_review"
-  | "peer_review"
   | "published"
-  | "reviewed_1778942"
-  | "reviewed"
   | "scheduled"
   | "seo_generation_1e32614"
-  | "seo_generation"
-  | "staff_member_review";
+  | "seo_generation";
 
 /**
  * Type representing all element codenames across all content types
@@ -138,6 +120,7 @@ export type ElementCodenames =
   | "caption"
   | "channel"
   | "cloudinary_integration"
+  | "cloudinary"
   | "content"
   | "cta_a"
   | "cta_b"
@@ -147,6 +130,7 @@ export type ElementCodenames =
   | "end_date"
   | "event_topic"
   | "event_type"
+  | "external_system_id"
   | "featured_content"
   | "first_name"
   | "form"
@@ -162,7 +146,6 @@ export type ElementCodenames =
   | "latitude_coordinate"
   | "linkedin"
   | "longitude_coordinate"
-  | "medical_specialties"
   | "menu"
   | "metadata__description"
   | "metadata__keywords"
@@ -177,6 +160,7 @@ export type ElementCodenames =
   | "pim_integration_e_g__shopify"
   | "prefix"
   | "publish_date"
+  | "region"
   | "related_articles"
   | "start_date"
   | "style"
@@ -190,6 +174,7 @@ export type ElementCodenames =
   | "url_slug"
   | "url"
   | "video_link"
+  | "vimeo_video"
   | "ways_to_stay"
   | "website"
   | "x"

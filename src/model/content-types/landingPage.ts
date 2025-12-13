@@ -72,6 +72,15 @@ export type LandingPage = CoreContentType<
      */
     readonly featured_content: Elements.LinkedItemsElement<Event | Article | CallToAction>;
     /**
+     * Cloudinary
+     *
+     * Type: custom
+     * Required: false
+     * Codename: cloudinary
+     * Id: 5219687a-a287-4d00-8023-aba72ca5a8a7
+     */
+    readonly cloudinary: Elements.CustomElement;
+    /**
      * Subpages
      *
      * Type: subpages
@@ -102,6 +111,7 @@ export type LandingPageElementCodenames =
   | "hero_image"
   | "body_copy"
   | "featured_content"
+  | "cloudinary"
   | "subpages"
   | "api_preview";
 

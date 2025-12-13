@@ -9,9 +9,18 @@ type CampgroundResultCardProps = {
 };
 
 const CampgroundResultCard: React.FC<CampgroundResultCardProps> = ({ hit, isPreview = false }) => {
-  // Construct campground URL - use objectID or campground_name as slug
-  // Note: objectID should match the Kontent.ai codename or URL slug
-  const campgroundSlug = hit.objectID;
+  // Construct campground URL - use slug if available, otherwise fall back to objectID (codename)
+  // The detail page checks both url.value and codename, so objectID works as fallback
+  // But slug is preferred for SEO-friendly URLs
+  // Normalize slug: remove leading "/" and "campgrounds/" prefix if present
+  let campgroundSlug: string;
+  if (hit.slug) {
+    let normalized = hit.slug.startsWith('/') ? hit.slug.slice(1) : hit.slug;
+    normalized = normalized.replace(/^campgrounds\//, '');
+    campgroundSlug = normalized;
+  } else {
+    campgroundSlug = hit.objectID;
+  }
   const campgroundPath = `/campgrounds/${campgroundSlug}`;
 
   // Truncate description if too long

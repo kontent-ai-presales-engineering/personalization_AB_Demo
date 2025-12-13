@@ -13,6 +13,7 @@ import { DeliveryError } from "@kontent-ai/delivery-sdk";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
+import VimeoEmbed from "../components/campgrounds/VimeoEmbed";
 
 const CampgroundDetailPage: React.FC = () => {
   const location = useLocation();
@@ -130,15 +131,62 @@ const CampgroundDetailPage: React.FC = () => {
     );
   }
 
+  // Extract Vimeo video ID if present
+  const extractVimeoVideoId = (input: string): string | null => {
+    if (!input) return null;
+    
+    // If it's already just a number/ID, return it
+    if (/^\d+$/.test(input.trim())) {
+      return input.trim();
+    }
+    
+    // Extract from URL patterns:
+    // https://vimeo.com/183941852
+    // https://player.vimeo.com/video/183941852
+    // https://vimeo.com/channels/staffpicks/183941852
+    const urlPatterns = [
+      /vimeo\.com\/(?:channels\/[^\/]+\/|groups\/[^\/]+\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/i,
+      /player\.vimeo\.com\/video\/(\d+)/i,
+    ];
+    
+    for (const pattern of urlPatterns) {
+      const match = input.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    return null;
+  };
+
+  const vimeoVideoId = campground.elements.vimeo_video?.value 
+    ? extractVimeoVideoId(campground.elements.vimeo_video.value)
+    : null;
+  
   const heroImageUrl = campground.elements.banner_image?.value?.[0]?.url;
   const isVideo = campground.elements.banner_image?.value?.[0]?.type?.startsWith('video');
+  const hasVimeoBackground = vimeoVideoId !== null;
 
   return (
     <div className="flex-grow">
       {/* Hero Section - Full Width */}
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center overflow-hidden">
-        {/* Background Image/Video - Full Width */}
-        {heroImageUrl && (
+        {/* Background - Vimeo Video (priority) or Banner Image/Video */}
+        {hasVimeoBackground ? (
+          <div className="absolute inset-0 z-0 w-full h-full">
+            <iframe
+              src={`https://player.vimeo.com/video/${vimeoVideoId}?autoplay=1&loop=1&muted=1&background=1&controls=0&title=0&byline=0&portrait=0`}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ border: 0 }}
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              {...createItemSmartLink(campground.system.id)}
+              {...createElementSmartLink("vimeo_video")}
+            />
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
+        ) : heroImageUrl ? (
           <div className="absolute inset-0 z-0 w-full h-full">
             {isVideo ? (
               <video
@@ -160,7 +208,7 @@ const CampgroundDetailPage: React.FC = () => {
             {/* Dark overlay for better text readability */}
             <div className="absolute inset-0 bg-black/50"></div>
           </div>
-        )}
+        ) : null}
 
         {/* Headline and Content - Suspended Over Hero */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 lg:px-8 text-center">
@@ -210,6 +258,74 @@ const CampgroundDetailPage: React.FC = () => {
             </div>
           )}
 
+          {/* Vimeo Video Embed */}
+          {campground.elements.vimeo_video?.value && (
+            <div
+              {...createItemSmartLink(campground.system.id)}
+              {...createElementSmartLink("vimeo_video")}
+            >
+              <VimeoEmbed
+                videoId={campground.elements.vimeo_video.value}
+                title={`${campground.elements.name?.value || 'Campground'} Video`}
+              />
+            </div>
+          )}
+
+          {/* Amenities */}
+          {campground.elements.amenities?.value && campground.elements.amenities.value.length > 0 && (
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h2
+                className="text-2xl font-sans-semibold text-gray-900 mb-4"
+                style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
+              >
+                Amenities
+              </h2>
+              <div
+                className="flex flex-wrap gap-2 font-sans"
+                style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}
+                {...createItemSmartLink(campground.system.id)}
+                {...createElementSmartLink("amenities")}
+              >
+                {campground.elements.amenities.value.map((amenity, index) => (
+                  <span
+                    key={index}
+                    className="inline-block bg-gray-100 text-black px-3 py-1 rounded"
+                  >
+                    {amenity.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ways to Stay */}
+          {campground.elements.ways_to_stay?.value && campground.elements.ways_to_stay.value.length > 0 && (
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h2
+                className="text-2xl font-sans-semibold text-gray-900 mb-4"
+                style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
+              >
+                Ways to Stay
+              </h2>
+              <div
+                className="flex flex-wrap gap-2 font-sans"
+                style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}
+                {...createItemSmartLink(campground.system.id)}
+                {...createElementSmartLink("ways_to_stay")}
+              >
+                {campground.elements.ways_to_stay.value.map((way, index) => (
+                  <span
+                    key={index}
+                    className="inline-block bg-gray-100 text-black px-3 py-1 rounded"
+                  >
+                    {way.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Contact Information */}
           {(campground.elements.address?.value ||
             campground.elements.phone_number?.value ||
             campground.elements.email_address?.value) && (

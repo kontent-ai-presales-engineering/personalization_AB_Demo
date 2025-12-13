@@ -7,8 +7,6 @@ import LaunchDarklyProvider from "./components/LaunchDarklyProvider.tsx";
 import BlogPage from "./pages/BlogPage.tsx";
 import Layout from "./components/Layout.tsx";
 import BlogDetail from "./pages/BlogDetail.tsx";
-import ServicesListingPage from "./pages/ServicesListingPage.tsx";
-import ServiceDetail from "./pages/ServiceDetail.tsx";
 import NotFound from "./components/NotFound.tsx";
 import ArticlesListingPage from "./pages/ArticlesListingPage.tsx";
 import ArticleDetailPage from "./pages/ArticleDetailPage.tsx";
@@ -49,14 +47,6 @@ const BaseRouting: RouteObject[] = [
   {
     path: "blog/:slug",
     Component: BlogDetail,
-  },
-  {
-    path: "services",
-    Component: ServicesListingPage,
-  },
-  {
-    path: "services/:slug",
-    Component: ServiceDetail,
   },
   {
     path: "articles",

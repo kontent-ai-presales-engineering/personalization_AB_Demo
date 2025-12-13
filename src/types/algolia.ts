@@ -9,6 +9,8 @@
  * Algolia campground search result
  * 
  * Fields available in Algolia index:
+ * - objectID: string (Kontent.ai codename)
+ * - slug: string (URL slug from campground.url element)
  * - campground_name: string
  * - city: string
  * - state: string
@@ -23,6 +25,7 @@
  */
 export interface AlgoliaCampground {
   objectID: string;
+  slug?: string; // URL slug from campground.url element
   campground_name: string;
   city: string;
   state: string;

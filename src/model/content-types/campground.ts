@@ -14,7 +14,7 @@
 **/
 
 import type { Elements } from "@kontent-ai/delivery-sdk";
-import type { Amenities, WaysToStay } from "../taxonomies/index.ts";
+import type { Amenities, WaysToStay, Region } from "../taxonomies/index.ts";
 import type { CoreContentType } from "../system/index.ts";
 import type { Metadata } from "../content-type-snippets/index.ts";
 import type { Page } from "./index.ts";
@@ -84,6 +84,15 @@ export type Campground = CoreContentType<
      */
     readonly ways_to_stay: Elements.TaxonomyElement<WaysToStay, "ways_to_stay">;
     /**
+     * Region
+     *
+     * Type: taxonomy
+     * Required: false
+     * Codename: region
+     * Id: 99ec3af2-027e-400c-97a3-7120ac3131d7
+     */
+    readonly region: Elements.TaxonomyElement<Region, "region">;
+    /**
      * Menu
      *
      * Type: subpages
@@ -149,6 +158,15 @@ export type Campground = CoreContentType<
      */
     readonly banner_image: Elements.AssetsElement;
     /**
+     * Vimeo Video
+     *
+     * Type: custom
+     * Required: false
+     * Codename: vimeo_video
+     * Id: 13b2f45d-7dd6-4ea4-b646-fcd413d4981a
+     */
+    readonly vimeo_video: Elements.CustomElement;
+    /**
      * URL
      *
      * Type: url_slug
@@ -197,6 +215,15 @@ export type Campground = CoreContentType<
      * Guidelines: Enter a value between -180 to 180
      */
     readonly longitude_coordinate: Elements.NumberElement;
+    /**
+     * External System ID
+     *
+     * Type: text
+     * Required: false
+     * Codename: external_system_id
+     * Id: f1727e40-c819-4e84-bbeb-95b2211e96f8
+     */
+    readonly external_system_id: Elements.TextElement;
   } & Metadata,
   "campground"
 >;
@@ -211,6 +238,7 @@ export type CampgroundElementCodenames =
   | "address"
   | "amenities"
   | "ways_to_stay"
+  | "region"
   | "menu"
   | "book_now_cta_text"
   | "book_now_cta_background_image"
@@ -218,6 +246,7 @@ export type CampgroundElementCodenames =
   | "banner_header"
   | "banner_body"
   | "banner_image"
+  | "vimeo_video"
   | "metadata__title"
   | "metadata__keywords"
   | "metadata__description"
@@ -225,7 +254,8 @@ export type CampgroundElementCodenames =
   | "google_place_id"
   | "yelp_business_id"
   | "latitude_coordinate"
-  | "longitude_coordinate";
+  | "longitude_coordinate"
+  | "external_system_id";
 
 /**
  * Type guard for Campground
