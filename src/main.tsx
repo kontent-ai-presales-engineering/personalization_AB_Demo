@@ -22,6 +22,7 @@ import ProductDetailPage from "./pages/ProductDetailPage.tsx";
 import PersonalTastePage from "./pages/PersonalTastePage.tsx";
 import CampgroundsListingPage from "./pages/CampgroundsListingPage.tsx";
 import CampgroundDetailPage from "./pages/CampgroundDetailPage.tsx";
+import SearchPage from "./pages/SearchPage.tsx";
 import AlgoliaTest from "./components/search/AlgoliaTest.tsx";
 
 const queryClient = new QueryClient({
@@ -72,6 +73,10 @@ const BaseRouting: RouteObject[] = [
   {
     path: "campgrounds/:slug",
     Component: CampgroundDetailPage,
+  },
+  {
+    path: "search",
+    Component: SearchPage,
   },
   {
     path: "our-team",
