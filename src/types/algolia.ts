@@ -34,6 +34,8 @@ export interface AlgoliaCampground {
   ways_to_stay: string[];
   region: string;
   google_place_id?: string;
+  // Index signature to satisfy BaseHit constraint
+  [key: string]: any;
 }
 
 /**

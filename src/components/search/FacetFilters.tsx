@@ -10,7 +10,7 @@ type FacetFilterProps = {
 const FacetFilter: React.FC<FacetFilterProps> = ({ attribute, title, searchable = false }) => {
   const { items, refine, searchForItems } = useRefinementList({
     attribute,
-    searchable,
+    // Note: searchable is not a direct parameter, but searchForItems function is available
   });
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

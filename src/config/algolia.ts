@@ -37,7 +37,7 @@ if (!algoliaSearchKey) {
  */
 const createSearchClientAdapter = (client: LiteClient) => {
   return {
-    search: (requests: any[]) => {
+    search: <T = any>(requests: any[]): Promise<any> => {
       // react-instantsearch-hooks-web expects a search method that takes an array of requests
       // Each request has: { indexName, params }
       // Returns: Promise<{ results: Array<{ hits, nbHits, ... }> }>
@@ -48,11 +48,14 @@ const createSearchClientAdapter = (client: LiteClient) => {
         ...request.params,
       }));
       
-      return client.searchForHits({
+      // Return in the format react-instantsearch expects
+      return client.searchForHits<T>({
         requests: v5Requests,
-      });
+      }).then((response) => ({
+        results: response.results,
+      }));
     },
-    searchForFacetValues: (requests: any[]) => {
+    searchForFacetValues: (requests: any[]): Promise<any> => {
       // For facet values search - convert to v5 format
       const v5Requests = requests.map((request) => ({
         indexName: request.indexName,
@@ -60,11 +63,14 @@ const createSearchClientAdapter = (client: LiteClient) => {
         ...request.params,
       }));
       
+      // Return in the format react-instantsearch expects
       return client.searchForFacets({
         requests: v5Requests,
-      });
+      }).then((response) => ({
+        results: response.results,
+      }));
     },
-  };
+  } as any; // Type assertion to bypass strict type checking - adapter pattern for v4/v5 compatibility
 };
 
 export const searchClient = algoliaAppId && algoliaSearchKey

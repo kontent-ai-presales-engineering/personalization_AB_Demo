@@ -8,8 +8,7 @@ import ResultsGrid from '../components/search/ResultsGrid';
 import PageSection from '../components/PageSection';
 
 const SearchPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const isPreview = searchParams.get('preview') === 'true';
+  // Note: isPreview could be used for preview mode features if needed
 
   // Check if Algolia is configured
   if (!isAlgoliaConfigured() || !searchClient) {
