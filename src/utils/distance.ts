@@ -42,3 +42,5 @@ export function calculateDistanceKm(coord1: Coordinates, coord2: Coordinates): n
   return distanceMiles * 1.60934; // Convert miles to kilometers
 }
 
+
+
