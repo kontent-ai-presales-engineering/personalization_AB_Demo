@@ -19,8 +19,11 @@ export const useGoogleMaps = () => {
   const [loadError, setLoadError] = useState<Error | null>(null);
 
   useEffect(() => {
+    console.log('[useGoogleMaps] Hook initialized');
+    
     // Check if Google Maps is already loaded
     if (window.google && window.google.maps) {
+      console.log('[useGoogleMaps] Google Maps already loaded');
       setIsLoaded(true);
       return;
     }
@@ -30,10 +33,14 @@ export const useGoogleMaps = () => {
       'script[src*="maps.googleapis.com/maps/api/js"]'
     );
     if (existingScript) {
+      console.log('[useGoogleMaps] Script already exists, waiting for load');
       // Wait for script to load
       existingScript.addEventListener('load', () => {
+        console.log('[useGoogleMaps] Existing script loaded');
         if (window.google && window.google.maps) {
           setIsLoaded(true);
+        } else {
+          setLoadError(new Error('Script loaded but google.maps not available'));
         }
       });
       return;
@@ -43,36 +50,53 @@ export const useGoogleMaps = () => {
     // Try VITE_GOOGLE_MAPS_API_KEY first, fallback to VITE_GOOGLE_PLACES_API_KEY (same key can be used for both)
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
+    console.log('[useGoogleMaps] API key check:', {
+      hasVITE_GOOGLE_MAPS_API_KEY: !!import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+      hasVITE_GOOGLE_PLACES_API_KEY: !!import.meta.env.VITE_GOOGLE_PLACES_API_KEY,
+      hasApiKey: !!apiKey,
+      apiKeyLength: apiKey?.length || 0,
+    });
+
     if (!apiKey) {
-      setLoadError(
-        new Error(
-          'Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY or VITE_GOOGLE_PLACES_API_KEY in your .env file.'
-        )
+      const error = new Error(
+        'Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY or VITE_GOOGLE_PLACES_API_KEY in your .env file.'
       );
+      console.error('[useGoogleMaps]', error.message);
+      setLoadError(error);
       return;
     }
 
     // Create script element
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.src = scriptUrl;
     script.async = true;
     script.defer = true;
 
+    console.log('[useGoogleMaps] Creating script tag:', scriptUrl.replace(apiKey, 'REDACTED'));
+
     // Handle successful load
     script.onload = () => {
+      console.log('[useGoogleMaps] Script loaded successfully');
       if (window.google && window.google.maps) {
+        console.log('[useGoogleMaps] google.maps is available');
         setIsLoaded(true);
       } else {
-        setLoadError(new Error('Google Maps API loaded but google.maps is not available'));
+        const error = new Error('Google Maps API loaded but google.maps is not available');
+        console.error('[useGoogleMaps]', error.message);
+        setLoadError(error);
       }
     };
 
     // Handle load error
-    script.onerror = () => {
-      setLoadError(new Error('Failed to load Google Maps JavaScript API'));
+    script.onerror = (error) => {
+      const errorMsg = 'Failed to load Google Maps JavaScript API';
+      console.error('[useGoogleMaps]', errorMsg, error);
+      setLoadError(new Error(errorMsg));
     };
 
     // Append script to document
+    console.log('[useGoogleMaps] Appending script to document.head');
     document.head.appendChild(script);
 
     // Cleanup function

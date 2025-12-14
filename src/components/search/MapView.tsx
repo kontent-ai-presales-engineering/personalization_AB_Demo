@@ -28,9 +28,39 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
   const { isLoaded, loadError } = useGoogleMaps();
   const [mapError, setMapError] = useState<string | null>(null);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[MapView] Component mounted/updated:', {
+      hitsCount: hits.length,
+      isLoaded,
+      loadError: loadError?.message,
+      hasMapRef: !!mapRef.current,
+      hasGoogleMaps: !!window.google?.maps,
+    });
+  }, [hits.length, isLoaded, loadError]);
+
   // Initialize map when Google Maps is loaded
   useEffect(() => {
-    if (!isLoaded || !mapRef.current || !window.google?.maps) {
+    console.log('[MapView] useEffect triggered:', {
+      isLoaded,
+      hasMapRef: !!mapRef.current,
+      hasGoogleMaps: !!window.google?.maps,
+      hitsCount: hits.length,
+    });
+
+    if (!isLoaded) {
+      console.log('[MapView] Maps not loaded yet, waiting...');
+      return;
+    }
+
+    if (!mapRef.current) {
+      console.warn('[MapView] Map container ref is null');
+      return;
+    }
+
+    if (!window.google?.maps) {
+      console.error('[MapView] window.google.maps is not available');
+      setMapError('Google Maps API is not available');
       return;
     }
 
@@ -51,19 +81,31 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
 
       // Initialize map
       if (!mapInstanceRef.current) {
+        console.log('[MapView] Creating new map instance');
         // Calculate center point from all markers
         const avgLat =
           validHits.reduce((sum, hit) => sum + hit.latitude, 0) / validHits.length;
         const avgLng =
           validHits.reduce((sum, hit) => sum + hit.longitude, 0) / validHits.length;
 
-        mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-          center: { lat: avgLat, lng: avgLng },
-          zoom: 6,
-          mapTypeControl: true,
-          streetViewControl: false,
-          fullscreenControl: true,
-        });
+        console.log('[MapView] Map center:', { lat: avgLat, lng: avgLng });
+
+        try {
+          mapInstanceRef.current = new window.google.maps.Map(mapRef.current!, {
+            center: { lat: avgLat, lng: avgLng },
+            zoom: 6,
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true,
+          });
+          console.log('[MapView] Map instance created successfully');
+        } catch (mapInitError) {
+          console.error('[MapView] Error creating map instance:', mapInitError);
+          setMapError(`Failed to initialize map: ${mapInitError instanceof Error ? mapInitError.message : 'Unknown error'}`);
+          return;
+        }
+      } else {
+        console.log('[MapView] Reusing existing map instance');
       }
 
       const map = mapInstanceRef.current;
@@ -155,9 +197,13 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
         }
       }
 
+      console.log('[MapView] Map initialization complete');
       setMapError(null);
     } catch (error) {
       console.error('[MapView] Error initializing map:', error);
+      if (error instanceof Error) {
+        console.error('[MapView] Error details:', error.message, error.stack);
+      }
       setMapError(
         error instanceof Error ? error.message : 'Failed to initialize map'
       );
@@ -183,6 +229,7 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
 
   // Error state
   if (loadError || mapError) {
+    console.log('[MapView] Rendering error state:', { loadError: loadError?.message, mapError });
     return (
       <div className="w-full h-[600px] flex items-center justify-center bg-gray-100 border-2 border-gray-300">
         <div className="text-center p-6">
@@ -206,15 +253,44 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
               Please add VITE_GOOGLE_MAPS_API_KEY or VITE_GOOGLE_PLACES_API_KEY to your environment variables.
             </p>
           )}
+          <div className="mt-4 text-xs text-gray-500">
+            <p>Debug info:</p>
+            <p>Hits received: {hits.length}</p>
+            <p>Maps loaded: {isLoaded ? 'Yes' : 'No'}</p>
+            <p>Has map ref: {mapRef.current ? 'Yes' : 'No'}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   // Map container
+  console.log('[MapView] Rendering map container');
+  const validHitsCount = hits.filter(
+    (hit) =>
+      hit.latitude != null &&
+      hit.longitude != null &&
+      !isNaN(hit.latitude) &&
+      !isNaN(hit.longitude)
+  ).length;
+
   return (
-    <div className="w-full h-[600px] border-2 border-gray-300">
-      <div ref={mapRef} className="w-full h-full" />
+    <div className="w-full h-[600px] border-2 border-gray-300 relative">
+      <div ref={mapRef} className="w-full h-full" style={{ minHeight: '600px' }} />
+      {/* Debug overlay (remove in production) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded z-10">
+          <div>Hits: {hits.length}</div>
+          <div>Valid coords: {validHitsCount}</div>
+          <div>Maps loaded: {isLoaded ? 'Yes' : 'No'}</div>
+          <div>Has ref: {mapRef.current ? 'Yes' : 'No'}</div>
+        </div>
+      )}
+      {hits.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">
+          <p className="text-gray-600">No campgrounds to display on map</p>
+        </div>
+      )}
     </div>
   );
 };
