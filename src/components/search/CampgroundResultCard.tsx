@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { AlgoliaCampground } from '../../types/algolia';
 import { createPreviewLink } from '../../utils/link';
+import GoogleRatingsCompact from './GoogleRatingsCompact';
 
 type CampgroundResultCardProps = {
   hit: AlgoliaCampground;
@@ -37,12 +38,20 @@ const CampgroundResultCard: React.FC<CampgroundResultCardProps> = ({ hit, isPrev
       <div className="flex flex-col h-full">
         {/* Content */}
         <div className="p-6 flex-grow flex flex-col">
-          <h3 
-            className="text-xl font-sans-semibold text-black mb-2" 
-            style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
-          >
-            {hit.campground_name}
-          </h3>
+          <div className="flex items-start justify-between mb-2">
+            <h3 
+              className="text-xl font-sans-semibold text-black flex-1" 
+              style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
+            >
+              {hit.campground_name}
+            </h3>
+            {/* Google Ratings - Compact */}
+            {hit.google_place_id && (
+              <div className="ml-2 flex-shrink-0">
+                <GoogleRatingsCompact placeId={hit.google_place_id} />
+              </div>
+            )}
+          </div>
           
           {/* Location */}
           <p 
