@@ -91,16 +91,36 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
         console.log('[MapView] Map center:', { lat: avgLat, lng: avgLng });
 
         try {
-          mapInstanceRef.current = new window.google.maps.Map(mapRef.current!, {
+          if (!mapRef.current) {
+            console.error('[MapView] mapRef.current is null when trying to create map');
+            setMapError('Map container element not found');
+            return;
+          }
+
+          console.log('[MapView] Creating map with container:', {
+            element: mapRef.current,
+            hasParent: !!mapRef.current.parentElement,
+            width: mapRef.current.offsetWidth,
+            height: mapRef.current.offsetHeight,
+          });
+
+          mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
             center: { lat: avgLat, lng: avgLng },
             zoom: 6,
             mapTypeControl: true,
             streetViewControl: false,
             fullscreenControl: true,
           });
-          console.log('[MapView] Map instance created successfully');
+          
+          console.log('[MapView] Map instance created successfully:', {
+            center: mapInstanceRef.current.getCenter()?.toJSON(),
+            zoom: mapInstanceRef.current.getZoom(),
+          });
         } catch (mapInitError) {
           console.error('[MapView] Error creating map instance:', mapInitError);
+          if (mapInitError instanceof Error) {
+            console.error('[MapView] Error stack:', mapInitError.stack);
+          }
           setMapError(`Failed to initialize map: ${mapInitError instanceof Error ? mapInitError.message : 'Unknown error'}`);
           return;
         }
@@ -181,11 +201,15 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
         bounds.extend(position);
       });
 
+      console.log('[MapView] Created', markersRef.current.length, 'markers');
+
       // Fit map to show all markers
       if (validHits.length > 1) {
+        console.log('[MapView] Fitting bounds for', validHits.length, 'markers');
         // Add padding to bounds (50px on all sides)
         map.fitBounds(bounds, 50);
       } else if (validHits.length === 1) {
+        console.log('[MapView] Centering on single marker');
         // If only one marker, center on it with a reasonable zoom
         const singleHit = validHits[0];
         if (singleHit) {
