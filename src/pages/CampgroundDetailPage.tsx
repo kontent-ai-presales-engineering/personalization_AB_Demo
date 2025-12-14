@@ -14,6 +14,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, applyUpdateOnItemAndLoadLinkedItems } from "@kontent-ai/smart-link";
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import VimeoEmbed from "../components/campgrounds/VimeoEmbed";
+import GoogleRatings from "../components/campgrounds/GoogleRatings";
+import AvailabilityChecker from "../components/campgrounds/AvailabilityChecker";
 
 const CampgroundDetailPage: React.FC = () => {
   const location = useLocation();
@@ -375,6 +377,29 @@ const CampgroundDetailPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Google Ratings */}
+          {campground.elements.google_place_id?.value && (
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h2
+                className="text-2xl font-sans-semibold text-gray-900 mb-4"
+                style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
+              >
+                Google Reviews
+              </h2>
+              <div
+                {...createItemSmartLink(campground.system.id)}
+                {...createElementSmartLink("google_place_id")}
+              >
+                <GoogleRatings placeId={campground.elements.google_place_id.value} />
+              </div>
+            </div>
+          )}
+
+          {/* Availability Checker */}
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <AvailabilityChecker campgroundId={campground.system.codename} />
+          </div>
         </div>
       </PageSection>
     </div>

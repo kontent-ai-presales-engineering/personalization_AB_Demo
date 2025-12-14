@@ -5,11 +5,21 @@
     },
     "api/webhooks/kontent.ts": {
       "runtime": "@vercel/node@2.0.0"
+    },
+    "api/google-ratings/index.ts": {
+      "runtime": "@vercel/node@2.0.0"
+    },
+    "api/availability/index.ts": {
+      "runtime": "@vercel/node@2.0.0"
     }
   },
   "rewrites": [
     {
-      "source": "/((?!api/.*).*)",
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ],
