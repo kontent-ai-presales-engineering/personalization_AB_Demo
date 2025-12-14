@@ -141,17 +141,18 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
 
       // Fit map to show all markers
       if (validHits.length > 1) {
-        map.fitBounds(bounds);
-        // Add padding to bounds
-        const padding = 50;
-        map.fitBounds(bounds, { padding });
+        // Add padding to bounds (50px on all sides)
+        map.fitBounds(bounds, 50);
       } else if (validHits.length === 1) {
         // If only one marker, center on it with a reasonable zoom
-        map.setCenter({
-          lat: validHits[0].latitude,
-          lng: validHits[0].longitude,
-        });
-        map.setZoom(12);
+        const singleHit = validHits[0];
+        if (singleHit) {
+          map.setCenter({
+            lat: singleHit.latitude,
+            lng: singleHit.longitude,
+          });
+          map.setZoom(12);
+        }
       }
 
       setMapError(null);
