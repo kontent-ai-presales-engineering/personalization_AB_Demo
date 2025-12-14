@@ -8,6 +8,8 @@ The Google Ratings feature requires a Google Places API key. This key is used **
 
 **Important:** This variable does NOT have the `VITE_` prefix because it's server-side only.
 
+**Note:** You can use the **same API key value** for both Google Places API and Google Maps JavaScript API. If you're also using Map View, set `VITE_GOOGLE_PLACES_API_KEY` (or `VITE_GOOGLE_MAPS_API_KEY`) to the same value. Just make sure to enable both APIs (Places API and Maps JavaScript API) in Google Cloud Console for that key.
+
 ## Setup Instructions
 
 ### 1. Get Your Google Places API Key

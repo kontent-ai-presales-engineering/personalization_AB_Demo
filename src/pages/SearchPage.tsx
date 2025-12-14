@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { InstantSearch } from 'react-instantsearch-hooks-web';
+import { useSearchParams } from 'react-router-dom';
 import { searchClient, indexName, isAlgoliaConfigured } from '../config/algolia';
 import SearchBox from '../components/search/SearchBox';
 import FacetFilters from '../components/search/FacetFilters';
-import ResultsGrid from '../components/search/ResultsGrid';
+import SearchResults from '../components/search/SearchResults';
 import PageSection from '../components/PageSection';
 
 const SearchPage: React.FC = () => {
-  // Note: isPreview could be used for preview mode features if needed
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+  
+  // View mode state: 'list' or 'map'
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Check if Algolia is configured
   if (!isAlgoliaConfigured() || !searchClient) {
@@ -55,16 +60,51 @@ const SearchPage: React.FC = () => {
 
           {/* Main Content Area */}
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters Sidebar */}
-            <aside className="lg:w-64 flex-shrink-0">
-              <div className="sticky top-8">
-                <FacetFilters />
-              </div>
-            </aside>
+            {/* Filters Sidebar - Hidden in map view */}
+            {viewMode === 'list' && (
+              <aside className="lg:w-64 flex-shrink-0">
+                <div className="sticky top-8">
+                  <FacetFilters />
+                </div>
+              </aside>
+            )}
 
             {/* Results Area */}
             <main className="flex-1 min-w-0">
-              <ResultsGrid />
+              {/* View Toggle */}
+              <div className="flex justify-end mb-4">
+                <div className="inline-flex rounded-md shadow-sm" role="group">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    className={`px-4 py-2 text-sm font-sans-semibold border ${
+                      viewMode === 'list'
+                        ? 'bg-koaBlue text-white border-koaBlue'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    } rounded-l-lg transition-colors`}
+                    style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
+                  >
+                    <span className="mr-2">📋</span>
+                    List View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('map')}
+                    className={`px-4 py-2 text-sm font-sans-semibold border ${
+                      viewMode === 'map'
+                        ? 'bg-koaBlue text-white border-koaBlue'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    } rounded-r-lg transition-colors`}
+                    style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
+                  >
+                    <span className="mr-2">🗺️</span>
+                    Map View
+                  </button>
+                </div>
+              </div>
+
+              {/* Results or Map */}
+              <SearchResults viewMode={viewMode} isPreview={isPreview} />
             </main>
           </div>
         </InstantSearch>
