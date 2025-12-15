@@ -15,6 +15,8 @@ import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, apply
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import VimeoEmbed from "../components/campgrounds/VimeoEmbed";
 import GoogleRatings from "../components/campgrounds/GoogleRatings";
+import AvailabilitySection from "../components/campgrounds/AvailabilitySection";
+import { generatePMSAvailability } from "../utils/pmsMock";
 
 const CampgroundDetailPage: React.FC = () => {
   const location = useLocation();
@@ -216,6 +218,16 @@ const CampgroundDetailPage: React.FC = () => {
   const heroImageUrl = campground.elements.banner_image?.value?.[0]?.url;
   const isVideo = campground.elements.banner_image?.value?.[0]?.type?.startsWith('video');
   const hasVimeoBackground = vimeoVideoId !== null;
+
+  // Generate PMS availability data synchronously using CMS ways_to_stay
+  // POC Pattern: Demonstrates runtime merge of CMS data (ways_to_stay) with PMS data generation
+  const waysToStay = campground?.elements.ways_to_stay?.value || [];
+  const pmsData = campground 
+    ? generatePMSAvailability(
+        campground.system.codename,
+        waysToStay  // CMS data drives PMS site types!
+      )
+    : null;
 
   return (
     <div className="flex-grow">
@@ -456,6 +468,13 @@ const CampgroundDetailPage: React.FC = () => {
               >
                 <GoogleRatings placeId={campground.elements.google_place_id.value} />
               </div>
+            </div>
+          )}
+
+          {/* PMS Availability - Runtime Merge with CMS Data */}
+          {pmsData && waysToStay.length > 0 && (
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <AvailabilitySection data={pmsData} />
             </div>
           )}
 
