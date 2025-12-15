@@ -39,12 +39,16 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
   className = '' 
 }) => {
   // Use default dates (today + tomorrow) for automatic fetch
-  const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0] || '';
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '';
 
   const { data, isLoading, error } = useQuery<AvailabilityData>({
     queryKey: ['availability', campgroundId, today, tomorrow],
     queryFn: async () => {
+      if (!today || !tomorrow) {
+        throw new Error('Invalid date format');
+      }
+      
       const params = new URLSearchParams();
       params.append('campgroundId', campgroundId);
       params.append('checkIn', today);
