@@ -58,13 +58,39 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
       console.log('[AvailabilityChecker] Request URL:', url);
       
       try {
-        const response = await fetch(url);
+        // Add timeout to detect if API route isn't responding
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for production
+        
+        console.log('[AvailabilityChecker] Starting fetch request...');
+        console.log('[AvailabilityChecker] Full URL:', window.location.origin + url);
+        
+        const response = await fetch(url, {
+          signal: controller.signal,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        clearTimeout(timeoutId);
+        
+        console.log('[AvailabilityChecker] Response received');
         console.log('[AvailabilityChecker] Response status:', response.status);
+        console.log('[AvailabilityChecker] Response headers:', Object.fromEntries(response.headers.entries()));
         
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('[AvailabilityChecker] Response error:', errorText);
-          throw new Error(`Failed to fetch availability: ${response.status} ${errorText}`);
+          let errorText = '';
+          try {
+            errorText = await response.text();
+          } catch (e) {
+            errorText = `Status ${response.status} ${response.statusText}`;
+          }
+          console.error('[AvailabilityChecker] Response error:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText,
+          });
+          throw new Error(`Failed to fetch availability: ${response.status} ${response.statusText} - ${errorText}`);
         }
         
         const json = await response.json();
@@ -72,6 +98,22 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
         return json;
       } catch (fetchError) {
         console.error('[AvailabilityChecker] Fetch error:', fetchError);
+        console.error('[AvailabilityChecker] Error type:', fetchError instanceof Error ? fetchError.constructor.name : typeof fetchError);
+        console.error('[AvailabilityChecker] Error details:', {
+          name: fetchError instanceof Error ? fetchError.name : 'Unknown',
+          message: fetchError instanceof Error ? fetchError.message : String(fetchError),
+          stack: fetchError instanceof Error ? fetchError.stack : undefined,
+        });
+        
+        if (fetchError instanceof Error) {
+          if (fetchError.name === 'AbortError') {
+            throw new Error('Request timed out after 15 seconds. The API route may not be responding. Check Vercel function logs.');
+          }
+          if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError')) {
+            throw new Error('Network error: Unable to reach API route. Check that the route is deployed and accessible.');
+          }
+        }
+        
         throw fetchError;
       }
     },
