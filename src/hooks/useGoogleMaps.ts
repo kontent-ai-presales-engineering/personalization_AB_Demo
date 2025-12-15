@@ -47,6 +47,8 @@ export const useGoogleMaps = () => {
     }
 
     // Get API key from environment variable
+    // Note: This key will be exposed in the client-side bundle (this is expected and normal for Maps JavaScript API)
+    // Security comes from HTTP referrer restrictions and API restrictions in Google Cloud Console
     // Try VITE_GOOGLE_MAPS_API_KEY first, fallback to VITE_GOOGLE_PLACES_API_KEY (same key can be used for both)
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
@@ -117,3 +119,4 @@ declare global {
     };
   }
 }
+

@@ -110,6 +110,12 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ) {
+  console.log('[Availability API] Request received:', {
+    method: request.method,
+    url: request.url,
+    query: request.query,
+  });
+
   // CORS headers
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -117,13 +123,16 @@ export default async function handler(
 
   // Only allow GET requests
   if (request.method !== 'GET') {
+    console.log('[Availability API] Method not allowed:', request.method);
     return response.status(405).json({ error: 'Method not allowed' });
   }
 
   const { campgroundId, checkIn, checkOut } = request.query;
+  console.log('[Availability API] Parsed query params:', { campgroundId, checkIn, checkOut });
 
   // Validate campgroundId
   if (!campgroundId || Array.isArray(campgroundId)) {
+    console.error('[Availability API] Missing or invalid campgroundId:', campgroundId);
     return response.status(400).json({
       error: 'Missing or invalid campgroundId parameter',
       message: 'Please provide a valid campground ID as a query parameter: ?campgroundId=...',
@@ -132,6 +141,7 @@ export default async function handler(
 
   // Validate checkIn date
   if (!checkIn || Array.isArray(checkIn)) {
+    console.error('[Availability API] Missing or invalid checkIn:', checkIn);
     return response.status(400).json({
       error: 'Missing or invalid checkIn parameter',
       message: 'Please provide a valid check-in date as ISO string: ?checkIn=2024-01-15',
@@ -139,6 +149,7 @@ export default async function handler(
   }
 
   if (!isValidDate(checkIn as string)) {
+    console.error('[Availability API] Invalid checkIn date format:', checkIn);
     return response.status(400).json({
       error: 'Invalid checkIn date format',
       message: 'Please provide checkIn as ISO date string (e.g., 2024-01-15)',
@@ -160,10 +171,12 @@ export default async function handler(
   }
 
   // Simulate 200ms API latency
+  console.log('[Availability API] Simulating 200ms delay...');
   await delay(200);
 
   // Generate mock site types
   const siteTypes = generateMockSiteTypes(campgroundId);
+  console.log('[Availability API] Generated site types:', siteTypes);
 
   // Determine overall availability (true if at least one site type is available)
   const available = siteTypes.some(site => site.available);
@@ -175,5 +188,7 @@ export default async function handler(
     checkOut: checkOutDate.toISOString().split('T')[0],
   };
 
+  console.log('[Availability API] Sending response:', mockResponse);
   return response.status(200).json(mockResponse);
 }
+

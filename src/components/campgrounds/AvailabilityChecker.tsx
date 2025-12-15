@@ -49,34 +49,91 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
   const { data, isLoading, error, refetch } = useQuery<AvailabilityData>({
     queryKey: ['availability', campgroundId, checkIn, checkOut],
     queryFn: async () => {
+      console.log('[AvailabilityChecker] Fetching availability:', { campgroundId, checkIn, checkOut });
       const params = new URLSearchParams();
       params.append('campgroundId', campgroundId);
       if (checkIn) params.append('checkIn', checkIn);
       if (checkOut) params.append('checkOut', checkOut);
-      const response = await fetch(`/api/availability?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability');
+      const url = `/api/availability?${params.toString()}`;
+      console.log('[AvailabilityChecker] Request URL:', url);
+      
+      try {
+        const response = await fetch(url);
+        console.log('[AvailabilityChecker] Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[AvailabilityChecker] Response error:', errorText);
+          throw new Error(`Failed to fetch availability: ${response.status} ${errorText}`);
+        }
+        
+        const json = await response.json();
+        console.log('[AvailabilityChecker] Response data:', json);
+        return json;
+      } catch (fetchError) {
+        console.error('[AvailabilityChecker] Fetch error:', fetchError);
+        throw fetchError;
       }
-      return response.json();
     },
     enabled: shouldFetch && !!campgroundId && !!checkIn && !!checkOut,
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    retry: 1,
   });
 
   const handleCheckAvailability = () => {
+    console.log('[AvailabilityChecker] Button clicked');
+    console.log('[AvailabilityChecker] Current state:', { 
+      campgroundId, 
+      checkIn, 
+      checkOut, 
+      shouldFetch,
+      isLoading,
+      hasError: !!error 
+    });
+    
     // Validate dates
-    if (!checkIn || !checkOut) return;
+    if (!checkIn || !checkOut) {
+      console.warn('[AvailabilityChecker] Missing dates:', { checkIn, checkOut });
+      return;
+    }
+    
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
 
     if (checkOutDate <= checkInDate) {
+      console.warn('[AvailabilityChecker] Invalid date range:', { checkIn, checkOut });
       alert('Check-out date must be after check-in date');
       return;
     }
 
+    console.log('[AvailabilityChecker] Setting shouldFetch to true');
     setShouldFetch(true);
-    refetch();
+    
+    // React Query will automatically run the query when enabled changes from false to true
+    // No need to call refetch() - React Query handles this automatically
   };
+
+  // Debug logging for query state
+  React.useEffect(() => {
+    console.log('[AvailabilityChecker] Query state:', {
+      shouldFetch,
+      campgroundId,
+      checkIn,
+      checkOut,
+      isLoading,
+      hasData: !!data,
+      hasError: !!error,
+      enabled: shouldFetch && !!campgroundId && !!checkIn && !!checkOut,
+    });
+  }, [shouldFetch, campgroundId, checkIn, checkOut, isLoading, data, error]);
+
+  // Ensure query runs when shouldFetch becomes true
+  React.useEffect(() => {
+    if (shouldFetch && !!campgroundId && !!checkIn && !!checkOut && !isLoading && !data && !error) {
+      console.log('[AvailabilityChecker] Query should be enabled but not running, triggering refetch');
+      refetch();
+    }
+  }, [shouldFetch, campgroundId, checkIn, checkOut, isLoading, data, error, refetch]);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
@@ -164,9 +221,14 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
       {/* Error State */}
       {error && shouldFetch && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-          <p className="text-red-800 font-sans" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
+          <p className="text-red-800 font-sans mb-2" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
             Unable to check availability at this time. Please try again later.
           </p>
+          {process.env.NODE_ENV === 'development' && (
+            <p className="text-red-600 text-xs font-mono">
+              Error: {error instanceof Error ? error.message : String(error)}
+            </p>
+          )}
         </div>
       )}
 
@@ -231,3 +293,4 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
 };
 
 export default AvailabilityChecker;
+

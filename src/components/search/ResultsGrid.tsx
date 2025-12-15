@@ -69,3 +69,4 @@ const ResultsGrid: React.FC = () => {
 };
 
 export default ResultsGrid;
+

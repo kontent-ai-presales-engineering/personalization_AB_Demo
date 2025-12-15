@@ -112,3 +112,4 @@ google_place_id: "ChIJN1t_tDeuEmsRUsoyG83frY4"
 
 1. **Local Testing:** Use `vercel dev` - no need to push to Vercel for testing
 2. **Data Source:** Google reviews use `campground.elements.google_place_id.value` from Kontent.ai CMS
+

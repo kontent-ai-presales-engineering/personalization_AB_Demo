@@ -117,3 +117,4 @@ const FacetFilters: React.FC = () => {
 };
 
 export default FacetFilters;
+

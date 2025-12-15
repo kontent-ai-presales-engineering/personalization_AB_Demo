@@ -153,3 +153,4 @@ const AlgoliaTest: React.FC = () => {
 };
 
 export default AlgoliaTest;
+

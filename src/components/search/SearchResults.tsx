@@ -26,3 +26,4 @@ const SearchResults: React.FC<SearchResultsProps> = ({ viewMode, isPreview = fal
 };
 
 export default SearchResults;
+

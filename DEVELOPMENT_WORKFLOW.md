@@ -149,3 +149,4 @@ vercel dev
 - ✅ **Test serverless functions in production** (or use `vercel dev` only when needed)
 
 The HTML parsing error with `vercel dev` is annoying but doesn't block your development - you can work around it by using `npm run dev` for most tasks!
+

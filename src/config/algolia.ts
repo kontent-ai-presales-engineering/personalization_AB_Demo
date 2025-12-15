@@ -123,3 +123,4 @@ export const defaultSearchParams = {
   ] as (keyof AlgoliaCampground)[],
   attributesToHighlight: ['campground_name', 'description'],
 };
+

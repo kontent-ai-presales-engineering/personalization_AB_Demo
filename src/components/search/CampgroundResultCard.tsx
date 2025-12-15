@@ -144,3 +144,4 @@ const CampgroundResultCard: React.FC<CampgroundResultCardProps> = ({ hit, isPrev
 };
 
 export default CampgroundResultCard;
+

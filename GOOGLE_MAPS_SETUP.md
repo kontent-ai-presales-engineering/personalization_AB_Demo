@@ -135,3 +135,16 @@ The Map View feature requires a Google Maps JavaScript API key. This key is used
 ✅ **Good:** Maps script loads dynamically (not on every page)  
 ⚠️ **Note:** API key is visible in client-side code (this is normal for Maps JavaScript API)  
 ✅ **Recommended:** Restrict API key to Maps JavaScript API only in Google Cloud Console
+
+**Why is the key exposed?**
+- Google Maps JavaScript API is a client-side library that runs in the browser
+- The API key is embedded in the script URL that loads Maps
+- This is by design - Google expects keys to be visible in the browser
+
+**How to secure it:**
+- ✅ Use HTTP referrer restrictions (only your domain)
+- ✅ Restrict to Maps JavaScript API only
+- ✅ Monitor usage and set billing alerts
+
+**For detailed security guidance, see:** [Google API Key Security Guide](./GOOGLE_API_KEY_SECURITY.md)
+

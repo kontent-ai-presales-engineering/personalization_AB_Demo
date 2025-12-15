@@ -130,6 +130,20 @@ VITE_GOOGLE_PLACES_API_KEY=your_api_key_here
 ✅ **Monitor usage** in Google Cloud Console  
 ⚠️ **Note**: Maps JavaScript API key is visible in client code (this is normal and expected)
 
+### Why is the Maps API Key Exposed?
+
+**The Maps JavaScript API key MUST be client-side** because:
+- Google Maps is a client-side JavaScript library
+- The API key is embedded in the script URL: `https://maps.googleapis.com/maps/api/js?key=YOUR_KEY`
+- This is how Google designed it - they expect keys to be visible in the browser
+
+**Security comes from restrictions, not hiding the key:**
+- ✅ HTTP referrer restrictions (only your domain can use it)
+- ✅ API restrictions (only Maps JavaScript API enabled)
+- ✅ Monitor usage and set billing alerts
+
+**For more details, see:** [Google API Key Security Guide](./GOOGLE_API_KEY_SECURITY.md)
+
 ## Troubleshooting
 
 ### "API key not valid" errors
@@ -155,3 +169,4 @@ If you want separate keys (e.g., different billing accounts):
 
 - [Google Places Setup](./GOOGLE_PLACES_SETUP.md) - Detailed Places API setup
 - [Google Maps Setup](./GOOGLE_MAPS_SETUP.md) - Detailed Maps API setup
+

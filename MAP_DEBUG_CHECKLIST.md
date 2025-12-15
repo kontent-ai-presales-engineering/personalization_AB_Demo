@@ -153,3 +153,4 @@ Share these details:
 3. **Debug panel values** (from top-right corner)
 4. **What you see** (blank, loading, error message, etc.)
 5. **Environment** (local dev with `npm run dev` or production?)
+

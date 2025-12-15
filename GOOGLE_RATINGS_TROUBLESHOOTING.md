@@ -185,3 +185,4 @@ Make sure your files are:
 Not:
 - `api/google-ratings/route.ts` ❌
 - `api/availability/route.ts` ❌
+

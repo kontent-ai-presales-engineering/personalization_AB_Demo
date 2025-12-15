@@ -74,3 +74,4 @@ export interface SearchState {
   region?: string[];
   page?: number;
 }
+

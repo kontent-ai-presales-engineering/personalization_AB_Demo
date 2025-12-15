@@ -320,3 +320,4 @@ const MapView: React.FC<MapViewProps> = ({ hits, isPreview = false }) => {
 };
 
 export default MapView;
+

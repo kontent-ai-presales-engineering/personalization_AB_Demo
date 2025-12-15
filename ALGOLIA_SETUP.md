@@ -123,3 +123,4 @@ After testing is complete, you can optionally remove:
 - Test route from `main.tsx` (line with `path: "test-algolia"`)
 
 The core configuration files (`algolia.ts` and `algolia.ts` types) should remain.
+

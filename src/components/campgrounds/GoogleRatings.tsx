@@ -138,3 +138,4 @@ const GoogleRatings: React.FC<GoogleRatingsProps> = ({ placeId, className = '' }
 };
 
 export default GoogleRatings;
+

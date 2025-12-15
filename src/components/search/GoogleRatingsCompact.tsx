@@ -106,3 +106,4 @@ const GoogleRatingsCompact: React.FC<GoogleRatingsCompactProps> = ({ placeId, cl
 };
 
 export default GoogleRatingsCompact;
+

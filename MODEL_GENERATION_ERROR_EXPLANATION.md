@@ -94,3 +94,4 @@ The campground content type itself is fine - the error is coming from the `servi
 2. Run `npm run model:generate` again
 3. The models should generate successfully
 4. Update code to use proper types instead of `as any` assertions
+

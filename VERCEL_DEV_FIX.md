@@ -59,3 +59,4 @@ After making changes:
 3. Check if the error persists
 
 If the error persists but the app works, it's safe to ignore - it's a known issue with Vercel dev + Vite integration.
+

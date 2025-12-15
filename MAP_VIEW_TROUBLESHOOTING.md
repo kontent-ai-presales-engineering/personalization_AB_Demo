@@ -154,3 +154,4 @@ If you need help, provide:
 3. Browser console errors (if any)
 4. What you see visually (blank, loading, error message, etc.)
 5. Environment: Local dev (`npm run dev`) or production?
+

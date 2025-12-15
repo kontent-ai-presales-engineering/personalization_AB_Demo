@@ -219,3 +219,4 @@ export default async function handler(
 
   return response.status(200).json(ratingData);
 }
+

@@ -130,3 +130,4 @@ The Google Ratings feature requires a Google Places API key. This key is used **
 - API Route: `api/google-ratings/route.ts`
 - Component: `src/components/campgrounds/GoogleRatings.tsx`
 - Integration: `src/pages/CampgroundDetailPage.tsx`
+

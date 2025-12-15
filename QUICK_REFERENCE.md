@@ -119,3 +119,4 @@ npm run model:generate   # Regenerate Kontent.ai TypeScript models
 3. **Test:** Verify all features work
 4. **Swap APIs:** Replace mock K2 PMS when ready
 5. **Customize:** Add branding, adjust styling as needed
+
