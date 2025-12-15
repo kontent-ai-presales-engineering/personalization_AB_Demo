@@ -1,8 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AlgoliaCampground } from '../../types/algolia';
 import { createPreviewLink } from '../../utils/link';
 import GoogleRatingsCompact from './GoogleRatingsCompact';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppContext } from '../../context/AppContext';
+import { createClient } from '../../utils/client';
+import { Campground, LanguageCodenames } from '../../model';
+import { DeliveryError } from '@kontent-ai/delivery-sdk';
 
 type CampgroundResultCardProps = {
   hit: AlgoliaCampground;
@@ -34,6 +39,7 @@ const CampgroundResultCard: React.FC<CampgroundResultCardProps> = ({ hit, isPrev
       to={createPreviewLink(campgroundPath, isPreview)}
       className="block bg-white border-0 shadow-md hover:shadow-lg transition-shadow overflow-hidden h-full"
       style={{ borderRadius: 0 }}
+      onMouseEnter={handleMouseEnter}
     >
       <div className="flex flex-col h-full">
         {/* Content */}

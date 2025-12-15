@@ -28,7 +28,7 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
       gcTime: 1000 * 60 * 10, // Keep unused data in cache for 10 minutes
-      refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
+      refetchOnMount: false, // Don't refetch if data is fresh (prevents unnecessary requests)
       refetchOnWindowFocus: false, // Don't refetch on window focus
       refetchOnReconnect: true, // Refetch when reconnecting
     },

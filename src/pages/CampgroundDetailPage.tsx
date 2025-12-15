@@ -30,7 +30,7 @@ const CampgroundDetailPage: React.FC = () => {
   const stateCampground = location.state?.campground as Campground | undefined;
 
   // Fetch campground from API if not in state (direct URL access, like Kontent.ai preview)
-  const { data: fetchedCampground, refetch } = useQuery({
+  const { data: fetchedCampground, refetch, isLoading, isFetching } = useQuery({
     queryKey: ["campground-detail", slug, lang, isPreview],
     queryFn: async () => {
       if (!slug) return null;
@@ -39,8 +39,25 @@ const CampgroundDetailPage: React.FC = () => {
         // Normalize slug - remove any "campgrounds/" prefix if present
         const normalizedSlug = slug.replace(/^campgrounds\//, '');
         
-        // Fetch campground by URL field
-        const response = await createClient(environmentId, apiKey, isPreview)
+        const client = createClient(environmentId, apiKey, isPreview);
+        
+        // Try to fetch by codename first (fastest)
+        try {
+          const codenameResponse = await client
+            .item<Campground>(normalizedSlug)
+            .languageParameter((lang ?? "default") as LanguageCodenames)
+            .depthParameter(3)
+            .toPromise();
+          
+          if (codenameResponse.data.item) {
+            return codenameResponse.data.item;
+          }
+        } catch (codenameErr) {
+          // If codename lookup fails, fall back to URL filter
+        }
+        
+        // Fallback: Fetch by URL field using filter (more efficient than fetching all)
+        const response = await client
           .items<Campground>()
           .type("campground")
           .languageParameter((lang ?? "default") as LanguageCodenames)
@@ -64,6 +81,7 @@ const CampgroundDetailPage: React.FC = () => {
       }
     },
     enabled: !!slug && !stateCampground, // Only fetch if slug exists and no state campground
+    staleTime: 1000 * 60 * 10, // Consider data fresh for 10 minutes
   });
 
   // Use state campground if available, otherwise use fetched campground
@@ -119,6 +137,34 @@ const CampgroundDetailPage: React.FC = () => {
     };
   }, [campground, setNavigationItems]);
 
+  // Show loading state while fetching (prevents "Not Found" flash)
+  if (isStillLoading) {
+    return (
+      <div className="flex-grow">
+        {/* Loading Hero Skeleton */}
+        <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center overflow-hidden bg-gray-200 animate-pulse">
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400"></div>
+          <div className="relative z-10 text-center">
+            <div className="h-12 w-64 bg-gray-500 rounded mx-auto mb-4 animate-pulse"></div>
+            <div className="h-6 w-96 bg-gray-400 rounded mx-auto animate-pulse"></div>
+          </div>
+        </div>
+        
+        {/* Loading Content Skeleton */}
+        <PageSection color="bg-white">
+          <div className="max-w-4xl mx-auto px-4 py-16">
+            <div className="space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+            </div>
+          </div>
+        </PageSection>
+      </div>
+    );
+  }
+  
+  // Show "Not Found" only after loading is complete
   if (!campground) {
     return (
       <div className="flex-grow flex items-center justify-center p-8">
@@ -171,7 +217,10 @@ const CampgroundDetailPage: React.FC = () => {
   return (
     <div className="flex-grow">
       {/* Hero Section - Full Width */}
-      <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center overflow-hidden bg-gray-200">
+        {/* Loading placeholder - shown until media loads */}
+        <div className="absolute inset-0 z-0 w-full h-full bg-gradient-to-b from-gray-300 to-gray-400" aria-hidden="true"></div>
+        
         {/* Background - Vimeo Video (priority) or Banner Image/Video */}
         {hasVimeoBackground ? (
           <div className="absolute inset-0 z-0 w-full h-full">
@@ -196,12 +245,24 @@ const CampgroundDetailPage: React.FC = () => {
                 loop={true}
                 muted={true}
                 className="w-full h-full object-cover"
+                onLoadedData={(e) => {
+                  // Hide placeholder when video loads
+                  const placeholder = e.currentTarget.parentElement?.previousElementSibling as HTMLElement;
+                  if (placeholder) placeholder.style.display = 'none';
+                }}
               />
             ) : (
               <img
                 className="w-full h-full object-cover"
                 src={`${heroImageUrl}?auto=format&w=1920`}
                 alt={campground.elements.banner_image?.value[0]?.description ?? campground.elements.name?.value ?? "Campground hero"}
+                loading="eager"
+                fetchPriority="high"
+                onLoad={(e) => {
+                  // Hide placeholder when image loads
+                  const placeholder = e.currentTarget.parentElement?.previousElementSibling as HTMLElement;
+                  if (placeholder) placeholder.style.display = 'none';
+                }}
                 {...createItemSmartLink(campground.system.id)}
                 {...createElementSmartLink("banner_image")}
               />
