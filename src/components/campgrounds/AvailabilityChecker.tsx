@@ -57,7 +57,7 @@ function generateMockSiteTypes(campgroundId: string): SiteType[] {
     const available = Math.random() > 0.3; // 70% chance available
     
     selectedTypes.push({
-      name: siteTypeTemplates[index],
+      name: siteTypeTemplates[index]!,
       price: basePrice,
       available,
     });
@@ -74,8 +74,8 @@ async function fetchAvailability(campgroundId: string): Promise<AvailabilityData
   // Simulate 200ms API latency
   await new Promise(resolve => setTimeout(resolve, 200));
   
-  const today = new Date().toISOString().split('T')[0] || '';
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '';
+  const today: string = new Date().toISOString().split('T')[0] || '';
+  const tomorrow: string = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '';
   
   if (!today || !tomorrow) {
     throw new Error('Failed to generate dates');
