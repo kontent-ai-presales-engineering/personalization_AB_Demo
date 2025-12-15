@@ -51,6 +51,10 @@ export function generatePMSAvailability(
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Format dates as ISO strings (YYYY-MM-DD)
+  const checkIn: string = today.toISOString().split('T')[0] || '';
+  const checkOut: string = tomorrow.toISOString().split('T')[0] || '';
 
   // Use CMS ways_to_stay if available, otherwise fallback to defaults
   const siteTypeNames = waysToStay.length > 0
@@ -80,7 +84,7 @@ export function generatePMSAvailability(
   return {
     available: selectedSites.some(s => s.available),
     siteTypes: selectedSites,
-    checkIn: today.toISOString().split('T')[0],
-    checkOut: tomorrow.toISOString().split('T')[0],
+    checkIn,
+    checkOut,
   };
 }
