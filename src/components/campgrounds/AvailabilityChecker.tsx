@@ -1,5 +1,4 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 
 type AvailabilityCheckerProps = {
   campgroundId: string;
@@ -20,10 +19,80 @@ type AvailabilityData = {
 };
 
 /**
+ * Generate mock site types with realistic data
+ * Simulates what K2 PMS API would return
+ */
+function generateMockSiteTypes(campgroundId: string): SiteType[] {
+  // Use campgroundId as seed for consistent mock data
+  const seed = campgroundId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const random = (min: number, max: number) => {
+    const r = Math.sin(seed) * 10000;
+    return Math.floor((r - Math.floor(r)) * (max - min + 1)) + min;
+  };
+
+  const siteTypeTemplates = [
+    'RV Site (Full Hookup)',
+    'RV Site (Water & Electric)',
+    'Tent Site',
+    'Cabin',
+    'Glamping Tent',
+    'RV Site (Electric Only)',
+    'Primitive Camping',
+  ];
+
+  // Select 3-5 random site types
+  const numSites = random(3, 5);
+  const selectedTypes: SiteType[] = [];
+  const usedIndices = new Set<number>();
+
+  for (let i = 0; i < numSites; i++) {
+    let index;
+    do {
+      index = random(0, siteTypeTemplates.length - 1);
+    } while (usedIndices.has(index));
+    
+    usedIndices.add(index);
+    
+    const basePrice = random(30, 150);
+    const available = Math.random() > 0.3; // 70% chance available
+    
+    selectedTypes.push({
+      name: siteTypeTemplates[index],
+      price: basePrice,
+      available,
+    });
+  }
+
+  return selectedTypes;
+}
+
+/**
+ * Simulate API call with delay
+ * TODO: Replace with real K2 PMS API call when credentials available
+ */
+async function fetchAvailability(campgroundId: string): Promise<AvailabilityData> {
+  // Simulate 200ms API latency
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  const siteTypes = generateMockSiteTypes(campgroundId);
+  const available = siteTypes.some(site => site.available);
+  
+  return {
+    available,
+    siteTypes,
+    checkIn: today,
+    checkOut: tomorrow,
+  };
+}
+
+/**
  * Availability Checker Component
  * 
  * Automatically fetches and displays campground availability.
- * Fetches from /api/availability endpoint which simulates K2 PMS API.
+ * Currently simulates K2 PMS API call - ready to swap for real API.
  * 
  * Features:
  * - Automatically fetches availability on mount
@@ -32,47 +101,32 @@ type AvailabilityData = {
  * - Disclaimer about simulated data
  * - Loading and error states
  * 
- * Maintenance: Bounded maintenance - Component ready for real API swap
+ * Maintenance: Bounded maintenance - Swap fetchAvailability function for real API call
  */
 const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({ 
   campgroundId, 
   className = '' 
 }) => {
-  // Use default dates (today + tomorrow) for automatic fetch
-  const today = new Date().toISOString().split('T')[0] || '';
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '';
+  const [data, setData] = useState<AvailabilityData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data, isLoading, error } = useQuery<AvailabilityData>({
-    queryKey: ['availability', campgroundId, today, tomorrow],
-    queryFn: async () => {
-      if (!today || !tomorrow) {
-        throw new Error('Invalid date format');
-      }
-      
-      const params = new URLSearchParams();
-      params.append('campgroundId', campgroundId);
-      params.append('checkIn', today);
-      params.append('checkOut', tomorrow);
-      const url = `/api/availability?${params.toString()}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+  useEffect(() => {
+    if (!campgroundId) return;
+
+    setIsLoading(true);
+    setError(null);
+    
+    fetchAvailability(campgroundId)
+      .then((result) => {
+        setData(result);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err : new Error('Failed to fetch availability'));
+        setIsLoading(false);
       });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch availability: ${response.status} ${errorText}`);
-      }
-      
-      return response.json();
-    },
-    enabled: !!campgroundId,
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    retry: 1,
-  });
+  }, [campgroundId]);
 
 
   const formatCurrency = (amount: number): string => {
