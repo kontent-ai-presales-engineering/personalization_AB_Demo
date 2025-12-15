@@ -74,8 +74,12 @@ async function fetchAvailability(campgroundId: string): Promise<AvailabilityData
   // Simulate 200ms API latency
   await new Promise(resolve => setTimeout(resolve, 200));
   
-  const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0] || '';
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '';
+  
+  if (!today || !tomorrow) {
+    throw new Error('Failed to generate dates');
+  }
   
   const siteTypes = generateMockSiteTypes(campgroundId);
   const available = siteTypes.some(site => site.available);
@@ -174,7 +178,7 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
               {data.available ? '✓ Availability Found' : '✗ No Availability'}
             </p>
             <p className="text-sm text-gray-600 mt-1 font-sans" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
-              Next available: {new Date(data.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(data.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              Next available: {data.checkIn ? new Date(data.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'} - {data.checkOut ? new Date(data.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
             </p>
           </div>
 
