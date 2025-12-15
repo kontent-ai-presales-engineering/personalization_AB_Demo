@@ -48,7 +48,7 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
 
   const { data, isLoading, error, refetch } = useQuery<AvailabilityData>({
     queryKey: ['availability', campgroundId, checkIn, checkOut],
-    queryFn: async () => {
+    queryFn: async ({ signal: querySignal }) => {
       console.log('[AvailabilityChecker] Fetching availability:', { campgroundId, checkIn, checkOut });
       const params = new URLSearchParams();
       params.append('campgroundId', campgroundId);
@@ -58,21 +58,34 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
       console.log('[AvailabilityChecker] Request URL:', url);
       
       try {
-        // Add timeout to detect if API route isn't responding
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for production
+        // Use React Query's abort signal if available, otherwise create our own
+        const controller = querySignal ? null : new AbortController();
+        const abortSignal = querySignal || controller!.signal;
+        
+        // Add timeout only if we created our own controller
+        let timeoutId: NodeJS.Timeout | null = null;
+        if (!querySignal) {
+          timeoutId = setTimeout(() => {
+            console.warn('[AvailabilityChecker] Request timeout after 15 seconds');
+            controller!.abort();
+          }, 15000);
+        }
         
         console.log('[AvailabilityChecker] Starting fetch request...');
         console.log('[AvailabilityChecker] Full URL:', window.location.origin + url);
+        console.log('[AvailabilityChecker] Using abort signal:', !!abortSignal);
         
         const response = await fetch(url, {
-          signal: controller.signal,
+          signal: abortSignal,
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         });
-        clearTimeout(timeoutId);
+        
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
         
         console.log('[AvailabilityChecker] Response received');
         console.log('[AvailabilityChecker] Response status:', response.status);

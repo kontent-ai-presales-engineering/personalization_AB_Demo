@@ -135,66 +135,66 @@ export default async function handler(
       return response.status(405).json({ error: 'Method not allowed' });
     }
 
-  const { campgroundId, checkIn, checkOut } = request.query;
-  console.log('[Availability API] Parsed query params:', { campgroundId, checkIn, checkOut });
+    const { campgroundId, checkIn, checkOut } = request.query;
+    console.log('[Availability API] Parsed query params:', { campgroundId, checkIn, checkOut });
 
-  // Validate campgroundId
-  if (!campgroundId || Array.isArray(campgroundId)) {
-    console.error('[Availability API] Missing or invalid campgroundId:', campgroundId);
-    return response.status(400).json({
-      error: 'Missing or invalid campgroundId parameter',
-      message: 'Please provide a valid campground ID as a query parameter: ?campgroundId=...',
-    });
-  }
+    // Validate campgroundId
+    if (!campgroundId || Array.isArray(campgroundId)) {
+      console.error('[Availability API] Missing or invalid campgroundId:', campgroundId);
+      return response.status(400).json({
+        error: 'Missing or invalid campgroundId parameter',
+        message: 'Please provide a valid campground ID as a query parameter: ?campgroundId=...',
+      });
+    }
 
-  // Validate checkIn date
-  if (!checkIn || Array.isArray(checkIn)) {
-    console.error('[Availability API] Missing or invalid checkIn:', checkIn);
-    return response.status(400).json({
-      error: 'Missing or invalid checkIn parameter',
-      message: 'Please provide a valid check-in date as ISO string: ?checkIn=2024-01-15',
-    });
-  }
+    // Validate checkIn date
+    if (!checkIn || Array.isArray(checkIn)) {
+      console.error('[Availability API] Missing or invalid checkIn:', checkIn);
+      return response.status(400).json({
+        error: 'Missing or invalid checkIn parameter',
+        message: 'Please provide a valid check-in date as ISO string: ?checkIn=2024-01-15',
+      });
+    }
 
-  if (!isValidDate(checkIn as string)) {
-    console.error('[Availability API] Invalid checkIn date format:', checkIn);
-    return response.status(400).json({
-      error: 'Invalid checkIn date format',
-      message: 'Please provide checkIn as ISO date string (e.g., 2024-01-15)',
-    });
-  }
+    if (!isValidDate(checkIn as string)) {
+      console.error('[Availability API] Invalid checkIn date format:', checkIn);
+      return response.status(400).json({
+        error: 'Invalid checkIn date format',
+        message: 'Please provide checkIn as ISO date string (e.g., 2024-01-15)',
+      });
+    }
 
-  // Parse dates
-  const checkInDate = new Date(checkIn as string);
-  const checkOutDate = checkOut && !Array.isArray(checkOut) && isValidDate(checkOut)
-    ? new Date(checkOut as string)
-    : new Date(checkInDate.getTime() + 24 * 60 * 60 * 1000); // Default: checkIn + 1 day
+    // Parse dates
+    const checkInDate = new Date(checkIn as string);
+    const checkOutDate = checkOut && !Array.isArray(checkOut) && isValidDate(checkOut)
+      ? new Date(checkOut as string)
+      : new Date(checkInDate.getTime() + 24 * 60 * 60 * 1000); // Default: checkIn + 1 day
 
-  // Validate check-out is after check-in
-  if (checkOutDate <= checkInDate) {
-    return response.status(400).json({
-      error: 'Invalid date range',
-      message: 'Check-out date must be after check-in date',
-    });
-  }
+    // Validate check-out is after check-in
+    if (checkOutDate <= checkInDate) {
+      return response.status(400).json({
+        error: 'Invalid date range',
+        message: 'Check-out date must be after check-in date',
+      });
+    }
 
-  // Simulate 200ms API latency
-  console.log('[Availability API] Simulating 200ms delay...');
-  await delay(200);
+    // Simulate 200ms API latency
+    console.log('[Availability API] Simulating 200ms delay...');
+    await delay(200);
 
-  // Generate mock site types
-  const siteTypes = generateMockSiteTypes(campgroundId);
-  console.log('[Availability API] Generated site types:', siteTypes);
+    // Generate mock site types
+    const siteTypes = generateMockSiteTypes(campgroundId);
+    console.log('[Availability API] Generated site types:', siteTypes);
 
-  // Determine overall availability (true if at least one site type is available)
-  const available = siteTypes.some(site => site.available);
+    // Determine overall availability (true if at least one site type is available)
+    const available = siteTypes.some(site => site.available);
 
-  const mockResponse: AvailabilityResponse = {
-    available,
-    siteTypes,
-    checkIn: checkInDate.toISOString().split('T')[0], // Return as YYYY-MM-DD
-    checkOut: checkOutDate.toISOString().split('T')[0],
-  };
+    const mockResponse: AvailabilityResponse = {
+      available,
+      siteTypes,
+      checkIn: checkInDate.toISOString().split('T')[0], // Return as YYYY-MM-DD
+      checkOut: checkOutDate.toISOString().split('T')[0],
+    };
 
     console.log('[Availability API] Sending response:', mockResponse);
     
