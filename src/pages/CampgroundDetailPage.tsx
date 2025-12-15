@@ -86,6 +86,9 @@ const CampgroundDetailPage: React.FC = () => {
 
   // Use state campground if available, otherwise use fetched campground
   const campground = stateCampground || fetchedCampground || null;
+  
+  // Determine if we're still loading (only when fetching from API, not when using state)
+  const isStillLoading = !stateCampground && (isLoading || isFetching);
 
   // Handle live preview updates
   const handleLiveUpdate = useCallback((data: IUpdateMessageData) => {

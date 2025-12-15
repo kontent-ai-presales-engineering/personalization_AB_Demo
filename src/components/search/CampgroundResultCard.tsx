@@ -28,6 +28,63 @@ const CampgroundResultCard: React.FC<CampgroundResultCardProps> = ({ hit, isPrev
     campgroundSlug = hit.objectID;
   }
   const campgroundPath = `/campgrounds/${campgroundSlug}`;
+  
+  const queryClient = useQueryClient();
+  const { environmentId, apiKey } = useAppContext();
+  const [searchParams] = useSearchParams();
+  const lang = searchParams.get('lang');
+  const previewMode = searchParams.get('preview') === 'true' || isPreview;
+  
+  // Prefetch campground data on hover
+  const handleMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["campground-detail", campgroundSlug, lang, previewMode],
+      queryFn: async () => {
+        try {
+          const normalizedSlug = campgroundSlug.replace(/^campgrounds\//, '');
+          const client = createClient(environmentId, apiKey, previewMode);
+          
+          // Try to fetch by codename first (fastest)
+          try {
+            const codenameResponse = await client
+              .item<Campground>(normalizedSlug)
+              .languageParameter((lang ?? "default") as LanguageCodenames)
+              .depthParameter(3)
+              .toPromise();
+            
+            if (codenameResponse.data.item) {
+              return codenameResponse.data.item;
+            }
+          } catch (codenameErr) {
+            // If codename lookup fails, fall back to URL filter
+          }
+          
+          // Fallback: Fetch by URL field using filter
+          const response = await client
+            .items<Campground>()
+            .type("campground")
+            .languageParameter((lang ?? "default") as LanguageCodenames)
+            .depthParameter(3)
+            .toPromise();
+
+          const campground = response.data.items.find(c => {
+            const urlValue = c.elements.url?.value || '';
+            const normalizedUrl = urlValue.startsWith('/') ? urlValue.slice(1) : urlValue;
+            const cleanUrl = normalizedUrl.replace(/^campgrounds\//, '');
+            return cleanUrl === normalizedSlug || c.system.codename === normalizedSlug;
+          });
+
+          return campground ?? null;
+        } catch (err) {
+          if (err instanceof DeliveryError) {
+            return null;
+          }
+          throw err;
+        }
+      },
+      staleTime: 1000 * 60 * 10, // Consider data fresh for 10 minutes
+    });
+  };
 
   // Truncate description if too long
   const truncatedDescription = hit.description 
