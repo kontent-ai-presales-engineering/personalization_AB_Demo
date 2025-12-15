@@ -15,7 +15,6 @@ import { IRefreshMessageData, IRefreshMessageMetadata, IUpdateMessageData, apply
 import { useCustomRefresh, useLivePreview } from "../context/SmartLinkContext";
 import VimeoEmbed from "../components/campgrounds/VimeoEmbed";
 import GoogleRatings from "../components/campgrounds/GoogleRatings";
-import AvailabilityChecker from "../components/campgrounds/AvailabilityChecker";
 
 const CampgroundDetailPage: React.FC = () => {
   const location = useLocation();
@@ -396,10 +395,6 @@ const CampgroundDetailPage: React.FC = () => {
             </div>
           )}
 
-          {/* Availability Checker */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <AvailabilityChecker campgroundId={campground.system.codename} />
-          </div>
         </div>
       </PageSection>
     </div>
