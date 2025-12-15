@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 type AvailabilityCheckerProps = {
@@ -22,12 +22,11 @@ type AvailabilityData = {
 /**
  * Availability Checker Component
  * 
- * Allows users to check campground availability for specific dates.
+ * Automatically fetches and displays campground availability.
  * Fetches from /api/availability endpoint which simulates K2 PMS API.
  * 
  * Features:
- * - Date inputs for check-in and check-out
- * - "Check Availability" button
+ * - Automatically fetches availability on mount
  * - Display site types with pricing
  * - Availability status badges
  * - Disclaimer about simulated data
@@ -39,156 +38,38 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
   campgroundId, 
   className = '' 
 }) => {
+  // Use default dates (today + tomorrow) for automatic fetch
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  const [checkIn, setCheckIn] = useState(today);
-  const [checkOut, setCheckOut] = useState(tomorrow);
-  const [shouldFetch, setShouldFetch] = useState(false);
-
-  const { data, isLoading, error, refetch } = useQuery<AvailabilityData>({
-    queryKey: ['availability', campgroundId, checkIn, checkOut],
-    queryFn: async ({ signal: querySignal }) => {
-      console.log('[AvailabilityChecker] Fetching availability:', { campgroundId, checkIn, checkOut });
+  const { data, isLoading, error } = useQuery<AvailabilityData>({
+    queryKey: ['availability', campgroundId, today, tomorrow],
+    queryFn: async () => {
       const params = new URLSearchParams();
       params.append('campgroundId', campgroundId);
-      if (checkIn) params.append('checkIn', checkIn);
-      if (checkOut) params.append('checkOut', checkOut);
+      params.append('checkIn', today);
+      params.append('checkOut', tomorrow);
       const url = `/api/availability?${params.toString()}`;
-      console.log('[AvailabilityChecker] Request URL:', url);
       
-      try {
-        // Use React Query's abort signal if available, otherwise create our own
-        const controller = querySignal ? null : new AbortController();
-        const abortSignal = querySignal || controller!.signal;
-        
-        // Add timeout only if we created our own controller
-        let timeoutId: NodeJS.Timeout | null = null;
-        if (!querySignal) {
-          timeoutId = setTimeout(() => {
-            console.warn('[AvailabilityChecker] Request timeout after 15 seconds');
-            controller!.abort();
-          }, 15000);
-        }
-        
-        console.log('[AvailabilityChecker] Starting fetch request...');
-        console.log('[AvailabilityChecker] Full URL:', window.location.origin + url);
-        console.log('[AvailabilityChecker] Using abort signal:', !!abortSignal);
-        
-        const response = await fetch(url, {
-          signal: abortSignal,
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        
-        console.log('[AvailabilityChecker] Response received');
-        console.log('[AvailabilityChecker] Response status:', response.status);
-        console.log('[AvailabilityChecker] Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-          let errorText = '';
-          try {
-            errorText = await response.text();
-          } catch (e) {
-            errorText = `Status ${response.status} ${response.statusText}`;
-          }
-          console.error('[AvailabilityChecker] Response error:', {
-            status: response.status,
-            statusText: response.statusText,
-            body: errorText,
-          });
-          throw new Error(`Failed to fetch availability: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-        
-        const json = await response.json();
-        console.log('[AvailabilityChecker] Response data:', json);
-        return json;
-      } catch (fetchError) {
-        console.error('[AvailabilityChecker] Fetch error:', fetchError);
-        console.error('[AvailabilityChecker] Error type:', fetchError instanceof Error ? fetchError.constructor.name : typeof fetchError);
-        console.error('[AvailabilityChecker] Error details:', {
-          name: fetchError instanceof Error ? fetchError.name : 'Unknown',
-          message: fetchError instanceof Error ? fetchError.message : String(fetchError),
-          stack: fetchError instanceof Error ? fetchError.stack : undefined,
-        });
-        
-        if (fetchError instanceof Error) {
-          if (fetchError.name === 'AbortError') {
-            throw new Error('Request timed out after 15 seconds. The API route may not be responding. Check Vercel function logs.');
-          }
-          if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError')) {
-            throw new Error('Network error: Unable to reach API route. Check that the route is deployed and accessible.');
-          }
-        }
-        
-        throw fetchError;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch availability: ${response.status} ${errorText}`);
       }
+      
+      return response.json();
     },
-    enabled: shouldFetch && !!campgroundId && !!checkIn && !!checkOut,
+    enabled: !!campgroundId,
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     retry: 1,
   });
 
-  const handleCheckAvailability = () => {
-    console.log('[AvailabilityChecker] Button clicked');
-    console.log('[AvailabilityChecker] Current state:', { 
-      campgroundId, 
-      checkIn, 
-      checkOut, 
-      shouldFetch,
-      isLoading,
-      hasError: !!error 
-    });
-    
-    // Validate dates
-    if (!checkIn || !checkOut) {
-      console.warn('[AvailabilityChecker] Missing dates:', { checkIn, checkOut });
-      return;
-    }
-    
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-
-    if (checkOutDate <= checkInDate) {
-      console.warn('[AvailabilityChecker] Invalid date range:', { checkIn, checkOut });
-      alert('Check-out date must be after check-in date');
-      return;
-    }
-
-    console.log('[AvailabilityChecker] Setting shouldFetch to true');
-    setShouldFetch(true);
-    
-    // React Query will automatically run the query when enabled changes from false to true
-    // No need to call refetch() - React Query handles this automatically
-  };
-
-  // Debug logging for query state
-  React.useEffect(() => {
-    console.log('[AvailabilityChecker] Query state:', {
-      shouldFetch,
-      campgroundId,
-      checkIn,
-      checkOut,
-      isLoading,
-      hasData: !!data,
-      hasError: !!error,
-      enabled: shouldFetch && !!campgroundId && !!checkIn && !!checkOut,
-    });
-  }, [shouldFetch, campgroundId, checkIn, checkOut, isLoading, data, error]);
-
-  // Ensure query runs when shouldFetch becomes true
-  React.useEffect(() => {
-    if (shouldFetch && !!campgroundId && !!checkIn && !!checkOut && !isLoading && !data && !error) {
-      console.log('[AvailabilityChecker] Query should be enabled but not running, triggering refetch');
-      refetch();
-    }
-  }, [shouldFetch, campgroundId, checkIn, checkOut, isLoading, data, error, refetch]);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
@@ -204,99 +85,38 @@ const AvailabilityChecker: React.FC<AvailabilityCheckerProps> = ({
         className="text-2xl font-sans-semibold text-gray-900 mb-4"
         style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
       >
-        Check Availability
+        Availability
       </h2>
-
-      {/* Date Inputs */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <label
-            htmlFor="check-in"
-            className="block text-sm font-sans-semibold text-gray-700 mb-2"
-            style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
-          >
-            Check-In Date
-          </label>
-          <input
-            id="check-in"
-            type="date"
-            value={checkIn}
-            onChange={(e) => {
-              setCheckIn(e.target.value);
-              setShouldFetch(false);
-            }}
-            min={today}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md font-sans focus:outline-none focus:ring-2 focus:ring-koaGreen"
-            style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}
-          />
-        </div>
-        <div className="flex-1">
-          <label
-            htmlFor="check-out"
-            className="block text-sm font-sans-semibold text-gray-700 mb-2"
-            style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
-          >
-            Check-Out Date
-          </label>
-          <input
-            id="check-out"
-            type="date"
-            value={checkOut}
-            onChange={(e) => {
-              setCheckOut(e.target.value);
-              setShouldFetch(false);
-            }}
-            min={checkIn || today}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md font-sans focus:outline-none focus:ring-2 focus:ring-koaGreen"
-            style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}
-          />
-        </div>
-      </div>
-
-      {/* Check Availability Button */}
-      <button
-        onClick={handleCheckAvailability}
-        disabled={isLoading}
-        className="w-full sm:w-auto px-6 py-3 bg-koaGreen text-white font-sans-semibold rounded-md hover:bg-koaYellowDark transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
-        style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}
-      >
-        {isLoading ? 'Checking...' : 'Check Availability'}
-      </button>
 
       {/* Loading State */}
       {isLoading && (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-koaGreen"></div>
           <p className="mt-2 text-gray-600 font-sans" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
-            Checking availability...
+            Loading availability...
           </p>
         </div>
       )}
 
       {/* Error State */}
-      {error && shouldFetch && (
+      {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-          <p className="text-red-800 font-sans mb-2" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
-            Unable to check availability at this time. Please try again later.
+          <p className="text-red-800 font-sans" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
+            Unable to load availability at this time. Please try again later.
           </p>
-          {process.env.NODE_ENV === 'development' && (
-            <p className="text-red-600 text-xs font-mono">
-              Error: {error instanceof Error ? error.message : String(error)}
-            </p>
-          )}
         </div>
       )}
 
       {/* Results */}
-      {data && shouldFetch && !isLoading && (
+      {data && !isLoading && (
         <div className="space-y-4">
           {/* Overall Availability Status */}
-          <div className={`p-4 rounded-md ${data.available ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+          <div className={`p-4 rounded-md mb-4 ${data.available ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
             <p className={`font-sans-semibold ${data.available ? 'text-green-800' : 'text-red-800'}`} style={{ fontFamily: '"Gibson SemiBold", Arial, sans-serif' }}>
               {data.available ? '✓ Availability Found' : '✗ No Availability'}
             </p>
             <p className="text-sm text-gray-600 mt-1 font-sans" style={{ fontFamily: '"Gibson Regular", Arial, sans-serif' }}>
-              {data.checkIn} to {data.checkOut}
+              Next available: {new Date(data.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(data.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
 

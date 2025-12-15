@@ -110,33 +110,25 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ) {
-  try {
-    console.log('[Availability API] Request received:', {
-      method: request.method,
-      url: request.url,
-      query: request.query,
-      headers: request.headers,
-    });
+  console.log('[Availability API] Request received:', {
+    method: request.method,
+    url: request.url,
+    query: request.query,
+  });
 
-    // CORS headers - set before any response
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // CORS headers
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle preflight OPTIONS request
-    if (request.method === 'OPTIONS') {
-      console.log('[Availability API] Handling OPTIONS preflight');
-      return response.status(200).end();
-    }
+  // Only allow GET requests
+  if (request.method !== 'GET') {
+    console.error('[Availability API] Method not allowed:', request.method);
+    return response.status(405).json({ error: 'Method not allowed' });
+  }
 
-    // Only allow GET requests
-    if (request.method !== 'GET') {
-      console.log('[Availability API] Method not allowed:', request.method);
-      return response.status(405).json({ error: 'Method not allowed' });
-    }
-
-    const { campgroundId, checkIn, checkOut } = request.query;
-    console.log('[Availability API] Parsed query params:', { campgroundId, checkIn, checkOut });
+  const { campgroundId, checkIn, checkOut } = request.query;
+  console.log('[Availability API] Parsed query params:', { campgroundId, checkIn, checkOut });
 
     // Validate campgroundId
     if (!campgroundId || Array.isArray(campgroundId)) {
@@ -196,25 +188,36 @@ export default async function handler(
       checkOut: checkOutDate.toISOString().split('T')[0],
     };
 
-    console.log('[Availability API] Sending response:', mockResponse);
+    console.log('[Availability API] Preparing to send response');
+    console.log('[Availability API] Response data:', JSON.stringify(mockResponse));
     
     // Ensure response is sent properly - use return statement
-    return response.status(200).json(mockResponse);
+    const result = response.status(200).json(mockResponse);
+    console.log('[Availability API] Response sent successfully');
+    return result;
   } catch (error) {
-    console.error('[Availability API] Unhandled error:', error);
+    console.error('[Availability API] Unhandled error caught:', error);
     if (error instanceof Error) {
-      console.error('[Availability API] Error details:', {
-        message: error.message,
-        stack: error.stack,
-      });
+      console.error('[Availability API] Error name:', error.name);
+      console.error('[Availability API] Error message:', error.message);
+      console.error('[Availability API] Error stack:', error.stack);
+    } else {
+      console.error('[Availability API] Non-Error object:', JSON.stringify(error));
     }
     
     // Make sure to send error response
-    if (!response.headersSent) {
-      response.status(500).json({
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
+    try {
+      if (!response.headersSent) {
+        console.log('[Availability API] Sending error response');
+        return response.status(500).json({
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      } else {
+        console.error('[Availability API] Headers already sent, cannot send error response');
+      }
+    } catch (responseError) {
+      console.error('[Availability API] Error sending error response:', responseError);
     }
   }
 }
