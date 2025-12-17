@@ -6,6 +6,12 @@ This proof-of-concept demonstrates a low-maintenance campground directory applic
 
 **Key Achievement:** Minimal custom code required - leverages existing services and APIs with simple integration patterns.
 
+**Recent Improvements:**
+- ✅ Optimized load times (loading skeletons, prefetching, caching)
+- ✅ Synchronous PMS integration (no API endpoints, instant display)
+- ✅ CMS-driven PMS data (uses `ways_to_stay` taxonomy)
+- ✅ Clean codebase (removed unused async availability code)
+
 ---
 
 ## Architecture Overview
@@ -110,6 +116,7 @@ This proof-of-concept demonstrates a low-maintenance campground directory applic
 - Dynamic detail pages fetching from Kontent.ai Delivery API
 - Displays: name, address, phone, email, description, amenities, ways to stay, region
 - Conditional Vimeo video hero background
+- Runtime merge of CMS data with PMS availability data
 - Client-side rendering optimized for load speed
 
 **How It Works:**
@@ -121,9 +128,10 @@ This proof-of-concept demonstrates a low-maintenance campground directory applic
 
 2. **Data Fetching:**
    - Uses Kontent.ai Delivery SDK with React Query caching
-   - Fetches by URL slug (from `campground.url` element)
-   - Falls back to codename if slug not found
-   - 5-minute stale time, 10-minute cache time
+   - Tries fetching by codename first (fastest path)
+   - Falls back to filtered query if codename lookup fails
+   - 10-minute stale time, 10-minute cache time
+   - Optimized to fetch only matching campground (not all campgrounds)
 
 3. **Hero Media Logic:**
    - Priority 1: Vimeo video (if `vimeo_video` custom element has value)
@@ -133,6 +141,8 @@ This proof-of-concept demonstrates a low-maintenance campground directory applic
 **Key Files:**
 - `src/pages/CampgroundDetailPage.tsx` - Main detail page component
 - `src/components/campgrounds/VimeoEmbed.tsx` - Vimeo video component
+- `src/components/campgrounds/AvailabilitySection.tsx` - PMS availability display
+- `src/utils/pmsMock.ts` - Synchronous PMS data generator
 - `src/model/content-types/campground.ts` - Generated TypeScript model
 
 **Questions You Might Get:**
@@ -145,6 +155,12 @@ This proof-of-concept demonstrates a low-maintenance campground directory applic
 
 **Q: What if a campground doesn't have a Vimeo video?**
 - **A:** Falls back to banner image/video asset. The logic checks for Vimeo first, then displays banner media if Vimeo is not available.
+
+**Q: How does PMS availability work?**
+- **A:** Uses CMS `ways_to_stay` taxonomy to determine which site types appear. PMS function generates pricing/availability synchronously for those CMS-defined types. Demonstrates runtime merge of CMS content with PMS data generation.
+
+**Q: Why is availability instant with no loading?**
+- **A:** Uses synchronous client-side generation - no API calls, no network latency. Data is computed instantly when component renders. When swapped for real API, loading states can be added.
 
 ---
 
@@ -203,56 +219,76 @@ This proof-of-concept demonstrates a low-maintenance campground directory applic
 
 ---
 
-### 2.2 Mock K2 PMS Availability API
+### 2.2 K2 PMS Availability Integration (Synchronous Mock)
 
 **What Was Built:**
-- Serverless function (`/api/availability`) returning mock availability data
-- Simulates 200ms latency
-- Client component with date inputs and availability display
-- Extensive comments for future real API swap
+- Synchronous client-side PMS data generation
+- Uses CMS `ways_to_stay` taxonomy to determine site types
+- Instant availability display (no loading states needed)
+- Demonstrates runtime merge of CMS + PMS data
 
 **How It Works:**
 
-1. **API Route (`api/availability/index.ts`):**
-   - Accepts: `campgroundId` (Kontent.ai codename), `checkIn` (ISO date), `checkOut` (optional ISO date)
-   - Generates mock data: 3-5 site types with random availability and prices ($30-$150)
-   - Simulates 200ms latency with `setTimeout`
-   - Validates date parameters
+1. **Data Generation (`src/utils/pmsMock.ts`):**
+   - Pure synchronous function - no async operations
+   - Takes `campgroundId` (from CMS) and `waysToStay` (from CMS taxonomy)
+   - Uses `ways_to_stay` names directly as site types (CMS-driven!)
+   - Generates deterministic pricing/availability per site type
+   - Returns data instantly (no network calls)
 
-2. **Mock Data Structure:**
+2. **Merge Pattern:**
+   ```
+   CMS Data (Kontent.ai)
+       │
+       ├─→ campground.system.codename → Seed for pricing/availability
+       └─→ campground.elements.ways_to_stay → Site type names
+            │
+            └─→ generatePMSAvailability(codename, ways_to_stay)
+                 └─→ Generates pricing/availability for each CMS way_to_stay
+                 └─→ Returns merged PMS data
+   ```
+
+3. **Mock Data Structure:**
    ```typescript
    {
      available: boolean,
      siteTypes: Array<{
-       name: string,
-       price: number,
-       available: boolean
+       name: string,        // From CMS ways_to_stay!
+       price: number,       // Generated deterministically
+       available: boolean  // Generated deterministically
      }>,
-     checkIn: string,
-     checkOut: string
+     checkIn: string,      // Today's date
+     checkOut: string      // Tomorrow's date
    }
    ```
 
-3. **Client Component (`AvailabilityChecker.tsx`):**
-   - Date inputs for check-in/check-out
-   - "Check Availability" button
+4. **Client Component (`AvailabilitySection.tsx`):**
+   - Simple presentational component
+   - Takes PMS data as prop (no loading/error states)
    - Displays site types, prices, availability badges
-   - Disclaimer about simulated data
+   - Shows disclaimer about simulated data
 
 **Key Files:**
-- `api/availability/index.ts` - Mock serverless function
-- `src/components/campgrounds/AvailabilityChecker.tsx` - UI component
+- `src/utils/pmsMock.ts` - Synchronous data generator
+- `src/components/campgrounds/AvailabilitySection.tsx` - Display component
+- `src/pages/CampgroundDetailPage.tsx` - Integration point
 
 **Questions You Might Get:**
 
+**Q: Why synchronous instead of async API endpoint?**
+- **A:** Maximizes simplicity for POC. Proves the merge concept (CMS + PMS) without infrastructure complexity. No API endpoints, no loading states, no network issues. Easy to swap for real API when ready.
+
+**Q: How does it use CMS data?**
+- **A:** The `ways_to_stay` taxonomy from Kontent.ai directly determines which site types appear. Editors control which site types are available per campground. PMS function generates pricing/availability for those CMS-defined types.
+
 **Q: When will this be replaced with real K2 PMS API?**
-- **A:** When K2 PMS credentials are available. The function has extensive comments indicating where to swap in real API calls. Expected endpoint, request format, and response format are documented in comments.
+- **A:** When K2 PMS credentials are available. Simply replace `generatePMSAvailability()` function with async API call. Component structure stays the same - just swap the data source.
 
 **Q: How easy is it to swap to real API?**
-- **A:** Very easy - replace the mock data generation with real API call. The function signature, parameters, and response structure are already designed to match expected K2 API format.
+- **A:** Very easy - replace the synchronous function with async API call. Can use React Query for async fetching if needed. The component structure and data types remain unchanged.
 
-**Q: Why simulate latency?**
-- **A:** To provide realistic UX during development. Real API will have network latency, so simulating it helps test loading states.
+**Q: Why no loading states?**
+- **A:** Synchronous generation is instant - no loading needed. When swapped for real API, loading states can be added using React Query's built-in loading states.
 
 ---
 
@@ -362,10 +398,13 @@ React Query checks cache
             │   ▼
             │   Google Places API
             │
-            └─ Display Availability Checker
+            └─ Generate PMS Availability (synchronous)
                 │
                 ▼
-                /api/availability (mock)
+                generatePMSAvailability(codename, ways_to_stay)
+                │
+                ▼
+                Display Availability Section
 ```
 
 ### Map View Flow
@@ -427,11 +466,15 @@ useGoogleMaps hook
 - **Caching:** 24-hour in-memory cache
 - **Error Handling:** Returns empty data structure on failure
 
-**`/api/availability`**
-- **Method:** GET
-- **Parameters:** `campgroundId`, `checkIn`, `checkOut` (query strings)
+### Client-Side Functions
+
+**PMS Availability Generator**
+- **Function:** `generatePMSAvailability(campgroundId, waysToStay)`
+- **Location:** `src/utils/pmsMock.ts`
+- **Type:** Synchronous (no API endpoint)
+- **Parameters:** `campgroundId` (string), `waysToStay` (Array from CMS)
 - **Returns:** `{ available: boolean, siteTypes: Array, checkIn: string, checkOut: string }`
-- **Latency:** Simulated 200ms delay
+- **Latency:** Instant (synchronous)
 - **Status:** Mock data - ready for real API swap
 
 ---
@@ -444,9 +487,7 @@ useGoogleMaps hook
 ```
 /
 ├── api/
-│   ├── google-ratings/
-│   │   └── index.ts          # Serverless function
-│   └── availability/
+│   └── google-ratings/
 │       └── index.ts          # Serverless function
 ├── src/
 │   ├── components/           # React components
@@ -468,6 +509,37 @@ useGoogleMaps hook
 
 ---
 
+## Performance Optimizations
+
+### Recent Optimizations (Load Time Improvements)
+
+1. **Loading State Management:**
+   - Added loading skeletons to prevent "Campground Not Found" flash
+   - Hero image placeholders prevent grey box flash during load
+   - Smooth transitions when content loads
+
+2. **React Query Configuration:**
+   - Changed `refetchOnMount: false` to avoid unnecessary refetches
+   - Increased stale time to 10 minutes for campground detail pages
+   - Faster navigation when data is cached
+
+3. **API Query Optimization:**
+   - Tries fetching by codename first (fastest path)
+   - Falls back to filtered query if codename lookup fails
+   - Reduces data transfer by avoiding fetching all campgrounds
+
+4. **Prefetching:**
+   - Prefetches campground data on hover over search result cards
+   - Near-instant navigation from search results
+   - Uses React Query's prefetchQuery
+
+5. **Image Optimization:**
+   - Hero images use `loading="eager"` and `fetchPriority="high"`
+   - Browser prioritizes above-the-fold images
+   - Placeholder backgrounds prevent visual flash
+
+---
+
 ## Performance Considerations
 
 ### Optimizations Implemented
@@ -476,10 +548,12 @@ useGoogleMaps hook
    - Sub-50ms search response times
    - No CMS calls on search page
    - Client-side filtering/faceting
+   - Prefetching on hover for instant navigation
 
 2. **React Query Caching:**
-   - 5-minute stale time for Kontent.ai data
+   - 10-minute stale time for Kontent.ai campground data
    - 1-hour stale time for Google Ratings
+   - `refetchOnMount: false` - avoids unnecessary refetches
    - Reduces redundant API calls
 
 3. **Server-Side Caching:**
@@ -493,13 +567,27 @@ useGoogleMaps hook
 5. **Client-Side Rendering:**
    - Fast initial load (no SSR overhead)
    - React Query handles data fetching/caching
+   - Loading skeletons prevent "Not Found" flash
+   - Hero image placeholders prevent grey box flash
+
+6. **PMS Data Generation:**
+   - Synchronous generation - instant display
+   - No network overhead
+   - No loading states needed
+   - Uses CMS `ways_to_stay` directly - content-driven
+
+7. **Image Optimization:**
+   - Hero images use `loading="eager"` and `fetchPriority="high"`
+   - Browser prioritizes above-the-fold images
 
 ### Performance Metrics (Expected)
 
 - **Search Page Load:** < 1 second (Algolia is fast)
-- **Detail Page Load:** < 2 seconds (Kontent.ai + React Query cache)
+- **Detail Page Load:** < 1.5 seconds (Kontent.ai + React Query cache + optimizations)
 - **Map View Load:** < 3 seconds (includes Google Maps script load)
 - **Search Response:** < 50ms (Algolia)
+- **PMS Availability:** Instant (synchronous generation)
+- **Navigation from Search:** Near-instant (prefetching on hover)
 
 ---
 
@@ -525,7 +613,7 @@ useGoogleMaps hook
 
 ### Monitoring Recommendations
 
-1. **Vercel Function Logs:** Monitor `/api/google-ratings` and `/api/availability` for errors
+1. **Vercel Function Logs:** Monitor `/api/google-ratings` for errors
 2. **Google Cloud Console:** Monitor API usage and costs
 3. **Algolia Dashboard:** Monitor search performance and index health
 4. **Browser Console:** Check for client-side errors
@@ -554,7 +642,7 @@ useGoogleMaps hook
 - **A:** Update in Kontent.ai, run `npm run model:generate` to regenerate TypeScript models, update components if needed.
 
 **Q: Can we add more external APIs?**
-- **A:** Yes - follow the pattern: Create serverless function in `/api/`, create client component, integrate into page. Same pattern as Google Ratings.
+- **A:** Yes - follow the pattern: Create serverless function in `/api/`, create client component, integrate into page. Same pattern as Google Ratings. For simple data generation, can also use synchronous client-side functions like PMS availability.
 
 ### Technical Questions
 
@@ -611,7 +699,7 @@ useGoogleMaps hook
   - A/B testing with LaunchDarkly (already integrated)
 
 **Q: How do we add booking functionality?**
-- **A:** When K2 PMS API is ready, replace mock availability API with real booking calls. Add booking form component. Follow same serverless function pattern.
+- **A:** When K2 PMS API is ready, replace `generatePMSAvailability()` function with real API call. Can use React Query for async fetching. Add booking form component. Component structure stays the same - just swap the data source.
 
 ---
 
@@ -689,9 +777,13 @@ useGoogleMaps hook
 ### Post-Deployment
 
 - [ ] Verify search page works
-- [ ] Verify detail pages load
+- [ ] Verify detail pages load (no "Not Found" flash)
+- [ ] Verify hero images/videos load smoothly (no grey box flash)
 - [ ] Test Google ratings display
+- [ ] Test PMS availability section (if campground has ways_to_stay)
+- [ ] Verify site types match CMS ways_to_stay taxonomy
 - [ ] Test map view
+- [ ] Test prefetching (hover over search results)
 - [ ] Check Vercel function logs for errors
 - [ ] Monitor Google API usage
 
@@ -717,6 +809,18 @@ useGoogleMaps hook
 - Check Google Maps JavaScript API is enabled
 - Verify API key restrictions allow your domain
 
+**PMS Availability not showing:**
+- Verify campground has `ways_to_stay` taxonomy items in Kontent.ai
+- Check browser console for errors
+- Verify `generatePMSAvailability` function is being called
+
+**Vimeo video loading delay:**
+- This is expected behavior for third-party iframe embeds
+- Delay is 1.2-3.2 seconds (normal for Vimeo player initialization)
+- Placeholder background prevents visual flash
+- In enterprise production, DNS prefetch/preconnect and thumbnail fallback would eliminate delay
+- See `VIMEO_LOADING_ANALYSIS.md` for detailed explanation
+
 **Build errors:**
 - Run `npm run build` locally to see errors
 - Check TypeScript compilation
@@ -730,6 +834,8 @@ useGoogleMaps hook
 - `GOOGLE_API_KEYS.md` - API key management
 - `DEVELOPMENT_WORKFLOW.md` - Development workflow
 - `ALGOLIA_SETUP.md` - Algolia setup
+- `K2_PMS_INTEGRATION_PROPOSAL.md` - PMS integration approach and rationale
+- `VIMEO_LOADING_ANALYSIS.md` - Vimeo video loading delay analysis
 
 **Logs:**
 - Vercel Dashboard → Functions → View logs
@@ -747,13 +853,22 @@ This POC demonstrates a production-ready campground directory with minimal custo
 - ✅ Scalable architecture
 - ✅ Type-safe with TypeScript
 - ✅ Graceful error handling
-- ✅ Performance optimized
+- ✅ Performance optimized (loading states, prefetching, caching)
 - ✅ Easy to extend
+- ✅ Runtime composition pattern (CMS + PMS data merge)
+
+**Key Features:**
+- **Search:** Algolia-powered instant search with faceted filtering
+- **Detail Pages:** Kontent.ai content with runtime enrichment
+- **Google Integration:** Ratings and Maps for enhanced UX
+- **PMS Integration:** Synchronous client-side mock demonstrating CMS + PMS merge pattern
+- **Performance:** Optimized loading, caching, and prefetching
 
 **Ready for Production:**
 - All core features implemented
 - Error handling in place
-- Performance optimizations applied
+- Performance optimizations applied (no loading flashes, instant navigation)
 - Documentation complete
 - Ready for real API swaps when credentials available
+- Clean codebase (unused code removed)
 
